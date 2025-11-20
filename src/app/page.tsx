@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
     ResponsiveContainer, ReferenceLine, Area, ComposedChart 
@@ -190,12 +190,18 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
 };
 
 const HomePage = () => {
-    const [fleetData] = useState(generateFleet()); 
+    const [fleetData, setFleetData] = useState<any[]>([]); 
     const [view, setView] = useState('FLEET'); 
     const [selectedTrainId, setSelectedTrainId] = useState<string | null>(null);
     const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null); 
     const [selectedWheel, setSelectedWheel] = useState<any | null>(null); 
     const [searchTerm, setSearchTerm] = useState('');
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setFleetData(generateFleet());
+        setIsClient(true);
+    }, []);
 
     const selectedTrainData = useMemo(() => 
         fleetData.find(t => t.id === selectedTrainId), 
@@ -206,6 +212,7 @@ const HomePage = () => {
     [selectedTrainData, selectedCoachId]);
 
     const criticalIssues = useMemo(() => {
+        if (!isClient) return [];
         const issues: any[] = [];
         fleetData.forEach(t => {
             t.coaches.forEach(c => {
@@ -217,7 +224,7 @@ const HomePage = () => {
             });
         });
         return issues.sort((a, b) => parseFloat(b.wheel.currentVal) - parseFloat(a.wheel.currentVal)); 
-    }, [fleetData]);
+    }, [fleetData, isClient]);
 
     const handleTrainSelect = (id: string) => {
         setSelectedTrainId(id);
@@ -237,6 +244,10 @@ const HomePage = () => {
         setSelectedWheel(null);
     };
 
+    if (!isClient) {
+        return null; // or a loading spinner
+    }
+    
     const renderFleetDashboard = () => {
         const filteredFleet = fleetData.filter(t => 
             t.id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -585,3 +596,5 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
+    
