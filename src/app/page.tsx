@@ -3,7 +3,11 @@ import { WheelDetails } from '@/components/wheel-details';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot } from 'lucide-react';
+import { generateTrains, getTrainStatus, TrainStatus } from '@/lib/data';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { TrainTrack } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 function LoadingWheelDetails() {
   return (
@@ -39,6 +43,19 @@ function LoadingWheelDetails() {
   );
 }
 
+function StatusIndicator({ status }: { status: TrainStatus }) {
+  return (
+    <div
+      className={cn(
+        'h-2.5 w-2.5 rounded-full',
+        status === 'action-required' && 'bg-destructive',
+        status === 'warning' && 'bg-orange-400',
+        status === 'ok' && 'bg-green-500'
+      )}
+    />
+  );
+}
+
 export default function Home({
   searchParams,
 }: {
@@ -49,25 +66,47 @@ export default function Home({
   const wheelId = searchParams?.wheel as string;
 
   const showDetails = trainId && coachId && wheelId;
+  const trains = generateTrains();
 
   return (
     <DashboardLayout searchParams={searchParams}>
       {showDetails ? (
-        <Suspense fallback={<LoadingWheelDetails />} key={`${trainId}-${coachId}-${wheelId}`}>
-          <WheelDetails
-            trainId={trainId}
-            coachId={coachId}
-            wheelId={wheelId}
-          />
-        </Suspense>
+        <Dialog open={true}>
+          <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+            <Suspense fallback={<LoadingWheelDetails />} key={`${trainId}-${coachId}-${wheelId}`}>
+              <WheelDetails
+                trainId={trainId}
+                coachId={coachId}
+                wheelId={wheelId}
+              />
+            </Suspense>
+          </DialogContent>
+        </Dialog>
       ) : (
-        <div className="flex h-full flex-col items-center justify-center p-6">
-          <div className="text-center bg-card p-10 rounded-lg shadow-sm border">
-            <Bot className="h-16 w-16 mx-auto text-primary" />
-            <h2 className="mt-6 text-2xl font-semibold text-foreground">Welcome to RailView</h2>
-            <p className="mt-2 text-muted-foreground max-w-sm">
-              Select a train, coach, and wheel from the sidebar to view its wear level trend and AI-powered analysis.
-            </p>
+        <div className="p-4 md:p-6">
+          <h1 className="text-2xl font-semibold mb-4">Fleet Monitoring System</h1>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {trains.map((train) => {
+              const status = getTrainStatus(train.id);
+              return (
+                <Link href={`/?train=${train.id}`} key={train.id}>
+                  <Card className={cn("hover:shadow-md transition-shadow", trainId === train.id && "ring-2 ring-primary")}>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-sm font-medium">{train.id}</CardTitle>
+                      <StatusIndicator status={status} />
+                    </CardHeader>
+                    <CardContent className="flex justify-center items-center p-4 pt-0">
+                       <TrainTrack className={cn(
+                        'h-10 w-10',
+                        status === 'action-required' && 'text-destructive',
+                        status === 'warning' && 'text-orange-400',
+                        status === 'ok' && 'text-green-500'
+                       )} />
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

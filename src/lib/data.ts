@@ -66,3 +66,52 @@ export function generateWearData(trainId: string, coachId: string, wheelId: stri
 
   return data;
 }
+
+export function getProjectedWearData(data: WearDataPoint[]): any[] {
+  if (data.length < 2) {
+    return [];
+  }
+  const lastPoint = data[data.length - 1];
+  const secondLastPoint = data[data.length - 2];
+
+  const avgIncrement = (lastPoint.level - data[0].level) / data.length;
+  
+  const projected = [];
+  for(let i=0; i<data.length; i++) {
+    projected.push({ time: data[i].time, projected: null });
+  }
+
+  let currentLevel = lastPoint.level;
+  for (let i = 0; i < 15; i++) {
+    currentLevel += avgIncrement * (1 + (Math.random() - 0.5) * 0.1); // Add some noise
+    projected.push({ time: lastPoint.time + i + 1, projected: parseFloat(currentLevel.toFixed(2))});
+  }
+  
+  // Make sure the projected line connects
+  projected[data.length-1].projected = lastPoint.level;
+
+  return projected;
+}
+
+export type TrainStatus = 'ok' | 'warning' | 'action-required';
+
+export function getTrainStatus(trainId: string): TrainStatus {
+  const seed = parseInt(trainId.slice(2), 10);
+  const random = seededRandom(seed);
+  if (random < 0.2) return 'action-required';
+  if (random < 0.5) return 'warning';
+  return 'ok';
+}
+
+export type WheelStatus = { status: 'ok' | 'warning' | 'imminent-failure', wearLevel: number };
+
+export function getWheelStatus(trainId: string, coachId: string, wheelId: string): WheelStatus {
+  const wearData = generateWearData(trainId, coachId, wheelId);
+  const latestWear = wearData[wearData.length-1].level;
+  
+  let status: 'ok' | 'warning' | 'imminent-failure' = 'ok';
+  if(latestWear > 50) status = 'imminent-failure';
+  else if(latestWear > 35) status = 'warning';
+
+  return { status, wearLevel: latestWear };
+}
