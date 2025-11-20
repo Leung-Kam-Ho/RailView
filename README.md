@@ -2,6 +2,10 @@
 
 A comprehensive rail wheel wear monitoring system built with Next.js, Firebase, and AI-powered anomaly detection. Monitor train fleets, track wheel wear trends, and receive predictive maintenance alerts.
 
+![RailView Screenshot](media/MainUI.png)
+![TrainView Screenshot](media/TrainView.png)
+![WheelView Screenshot](media/WheelView.png)
+
 ## Features
 
 - **Fleet Monitoring**: Real-time dashboard for 37 active trains (TS01-TS37)
