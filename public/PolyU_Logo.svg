@@ -1,0 +1,653 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 195 195" width="200" height="200">
+	<title>PolyU-svg</title>
+	<defs>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp1">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp2">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp3">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp4">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp5">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp6">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp7">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp8">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp9">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp10">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp11">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp12">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp13">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp14">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp15">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp16">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp17">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp18">
+			<path d="m-275.45 929.69h793.76v-1122.56h-793.76z"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp19">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp20">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp21">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp22">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp23">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp24">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp25">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp26">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp27">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp28">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp29">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp30">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp31">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp32">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp33">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp34">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp35">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp36">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp37">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp38">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp39">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp40">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp41">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp42">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp43">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp44">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp45">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp46">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp47">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp48">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp49">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp50">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp51">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp52">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp53">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp54">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp55">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp56">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp57">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp58">
+			<path d="m-275.45-192.87h793.76v1122.56h-793.76"/>
+		</clipPath>
+	</defs>
+	<style>
+		.s0 { fill: #8f1329 } 
+	</style>
+	<g id="Layer">
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp1)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp2)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp3)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp4)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp5)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp6)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp7)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp8)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp9)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp10)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp11)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp12)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp13)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp14)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp15)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp16)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp17)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp18)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp19)">
+				<g id="Layer">
+					<g id="Layer">
+						<g id="Layer">
+						</g>
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp20)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp21)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp22)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp23)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp24)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp25)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp26)">
+				<g id="Layer">
+					<g id="Layer">
+						<g id="Layer">
+						</g>
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp27)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp28)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp29)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp30)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp31)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp32)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp33)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp34)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp35)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp36)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp37)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp38)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp39)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp40)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp41)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp42)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp43)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp44)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp45)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp46)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp47)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp48)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp49)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp50)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp51)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp52)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp53)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp54)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp55)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp56)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp57)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+		<g id="Layer">
+			<g id="Clip-Path" clip-path="url(#cp58)">
+				<g id="Layer">
+					<g id="Layer">
+					</g>
+				</g>
+			</g>
+		</g>
+	</g>
+	<path id="Layer" class="s0" d="m24.6 60.3c7.5-1.5 15.3-0.9 22.5 2l40.3-40.3c5.6-5.6 14.9-5.4 20.5 0.2 5.6 5.6 5.6 15 0 20.6l-10.3 10.4-15.6-15.5-12.2 12.2 43.4 43.5 12.3-12.3-15.5-15.5 10.2-10.2 0.1-0.1c12.5-12.5 12.5-32.8 0-45.2-12.5-12.5-32.8-12.6-45.3-0.1 0 0-50.4 50.4-50.4 50.3zm110.4-35.5c1.6 7.4 0.9 15.3-2 22.4l40.3 40.3c5.6 5.6 5.5 14.9-0.1 20.5-5.7 5.7-15 5.7-20.6 0l-10.4-10.3 15.5-15.5-12.3-12.3-43.4 43.5 12.3 12.2 15.5-15.4 10.2 10.2v0.1c12.5 12.4 32.8 12.4 45.3 0 12.5-12.6 12.6-32.9 0.1-45.4 0 0-50.4-50.4-50.4-50.3zm35.7 110.3c-7.5 1.6-15.3 0.9-22.5-2l-40.3 40.3c-5.6 5.6-14.9 5.4-20.5-0.2-5.6-5.6-5.6-15 0-20.6l10.3-10.3 15.5 15.5 12.3-12.3-43.4-43.4-12.3 12.2 15.5 15.5-10.3 10.3c-12.5 12.5-12.5 32.8 0 45.3 12.5 12.5 32.8 12.6 45.3 0.1 0 0 50.4-50.4 50.4-50.4zm-110.4 35.6c-1.6-7.5-0.9-15.3 2-22.5l-40.3-40.3c-5.6-5.6-5.4-14.9 0.2-20.5 5.6-5.6 15-5.6 20.6 0l10.3 10.4-15.5 15.5 12.3 12.3 43.4-43.5-12.2-12.3-15.5 15.5-10.3-10.2v-0.1c-12.5-12.5-32.8-12.5-45.3 0-12.5 12.5-12.6 32.8-0.1 45.3 0 0 50.4 50.4 50.4 50.4z"/>
+</svg>
