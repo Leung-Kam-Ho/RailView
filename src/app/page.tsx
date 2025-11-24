@@ -16,6 +16,33 @@ import {
 const LIMIT_WARNING = 34.0;
 const LIMIT_CRITICAL = 35.0;
 
+interface Wheel {
+    id: string;
+    position: string;
+    status: 'healthy' | 'warning' | 'critical';
+    currentVal: string;
+    maxVal: string;
+    trend: any[];
+}
+
+interface Coach {
+    id: string;
+    index: number;
+    status: 'healthy' | 'warning' | 'critical';
+    wheels: Wheel[];
+    maxWear: number;
+    trainId?: string;
+    trainStatus?: 'healthy' | 'warning' | 'critical';
+}
+
+interface Train {
+    id: string;
+    status: 'healthy' | 'warning' | 'critical';
+    coaches: Coach[];
+}
+
+type FilteredCoach = Coach & { trainId: string; trainStatus: 'healthy' | 'warning' | 'critical' };
+
 
 
 // Fetch and build the Fleet Structure from MongoDB aggregated data
@@ -51,7 +78,7 @@ const fetchFleet = async () => {
 
             const coachMap = grouped[trainId];
             for (const coachId in coachMap) {
-                const wheels = [];
+                const wheels: Wheel[] = [];
                 let coachStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
 
                 const wheelMap = coachMap[coachId];
@@ -85,13 +112,15 @@ const fetchFleet = async () => {
                     else if (status === 'warning' && coachStatus !== 'critical') coachStatus = 'warning';
                 }
 
+                const maxWear = Math.max(...wheels.map(w => parseFloat(w.maxVal)));
                 const index = coachIds.indexOf(coachId);
-                coaches.push({
-                    id: coachId,
-                    index: index >= 0 ? index : 0,
-                    status: coachStatus,
-                    wheels: wheels
-                });
+                 coaches.push({
+                     id: coachId,
+                     index: index >= 0 ? index : 0,
+                     status: coachStatus,
+                     wheels: wheels,
+                     maxWear: maxWear
+                 });
 
                 if (coachStatus === 'critical') trainStatus = 'critical';
                 else if (coachStatus === 'warning' && trainStatus !== 'critical') trainStatus = 'warning';
@@ -185,13 +214,9 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
 // --- COMPONENTS ---
 
 const StatusIndicator = ({ status, size = 'md' }: { status: 'healthy' | 'warning' | 'critical', size?: 'sm' | 'md' | 'lg' }) => {
-    const colors = {
-        healthy: 'bg-emerald-500',
-        warning: 'bg-amber-500',
-        critical: 'bg-rose-600'
-    };
+    const color = status === 'healthy' ? 'bg-emerald-500' : status === 'warning' ? 'bg-amber-500' : 'bg-rose-600';
     const dim = size === 'sm' ? 'w-2 h-2' : size === 'lg' ? 'w-4 h-4' : 'w-3 h-3';
-    return <div className={`rounded-full ${colors[status]} ${dim} shadow-sm`} />;
+    return <div className={`rounded-full ${color} ${dim} shadow-sm`} />;
 };
 
 const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) => {
@@ -201,7 +226,7 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
         healthy: 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100 dark:bg-green-950 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900',
         warning: 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900',
         critical: 'bg-rose-50 border-rose-500 text-rose-700 hover:bg-rose-100 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900'
-    };
+    } as const;
 
     return (
         <div className="flex flex-col items-center gap-2">
@@ -228,14 +253,15 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
 };
 
 const HomePage = () => {
-    const [fleetData, setFleetData] = useState<any[]>([]);
+    const [fleetData, setFleetData] = useState<Train[]>([]);
     const [view, setView] = useState('FLEET');
     const [selectedTrainId, setSelectedTrainId] = useState<string | null>(null);
     const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
-    const [selectedWheel, setSelectedWheel] = useState<any | null>(null);
+    const [selectedWheel, setSelectedWheel] = useState<Wheel | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState<'trainset' | 'coach'>('coach');
     const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
+    const [coachTypeFilter, setCoachTypeFilter] = useState<'all' | 'D' | 'P' | 'M' | 'F'>('all');
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -276,11 +302,25 @@ const HomePage = () => {
 
     const filteredItems = useMemo(() => {
         if (viewMode === 'trainset') {
-            return fleetData.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) && (statusFilter === 'all' || t.status === statusFilter));
+            return fleetData.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) && (statusFilter === 'all' || t.status === statusFilter)).sort((a, b) => {
+                const statusOrder = { critical: 3, warning: 2, healthy: 1 };
+                const aOrder = statusOrder[a.status];
+                const bOrder = statusOrder[b.status];
+                if (aOrder !== bOrder) return bOrder - aOrder;
+                return a.id.localeCompare(b.id);
+            });
         } else {
-            return fleetData.flatMap(t => t.coaches.filter(c => (c.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase())) && (statusFilter === 'all' || c.status === statusFilter)).map(c => ({ ...c, trainId: t.id, trainStatus: t.status })));
+            let coaches = fleetData.flatMap(t => t.coaches.filter(c => (c.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase())) && (statusFilter === 'all' || c.status === statusFilter) && (coachTypeFilter === 'all' || c.id.startsWith(coachTypeFilter))).map(c => ({ ...c, trainId: t.id, trainStatus: t.status })));
+            coaches.sort((a, b) => {
+                const statusOrder = { critical: 3, warning: 2, healthy: 1 };
+                const aOrder = statusOrder[a.status];
+                const bOrder = statusOrder[b.status];
+                if (aOrder !== bOrder) return bOrder - aOrder;
+                return b.maxWear - a.maxWear;
+            });
+            return coaches;
         }
-    }, [fleetData, viewMode, searchTerm, statusFilter]);
+    }, [fleetData, viewMode, searchTerm, statusFilter, coachTypeFilter]);
 
     const filteredCriticalCount = useMemo(() => {
         if (statusFilter === 'warning') return 0;
@@ -375,22 +415,31 @@ const HomePage = () => {
                                       Coach
                                   </button>
                               </div>
-                             <div className="flex gap-2 text-xs font-medium">
-                                 <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All</button>
-                                 <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'}`}>
-                                     <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
-                                 </button>
-                                 <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'}`}>
-                                     <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
-                                 </button>
-                             </div>
+                              <div className="flex gap-2 text-xs font-medium">
+                                  <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All</button>
+                                  <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'}`}>
+                                      <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
+                                  </button>
+                                  <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'}`}>
+                                      <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
+                                  </button>
+                              </div>
+                              {viewMode === 'coach' && (
+                                  <div className="flex gap-2 text-xs font-medium">
+                                      <button onClick={() => setCoachTypeFilter('all')} className={`px-2 py-1 rounded ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All Types</button>
+                                      <button onClick={() => setCoachTypeFilter('D')} className={`px-2 py-1 rounded ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>D</button>
+                                      <button onClick={() => setCoachTypeFilter('P')} className={`px-2 py-1 rounded ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>P</button>
+                                      <button onClick={() => setCoachTypeFilter('M')} className={`px-2 py-1 rounded ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>M</button>
+                                      <button onClick={() => setCoachTypeFilter('F')} className={`px-2 py-1 rounded ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>F</button>
+                                  </div>
+                              )}
                         </div>
                     </header>
 
                      <main className="flex-1 overflow-y-auto p-6">
                          {viewMode === 'trainset' ? (
                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                                 {filteredItems.map(train => (
+                                  {(filteredItems as Train[]).map(train => (
                                      <button
                                          key={train.id}
                                          onClick={() => handleTrainSelect(train.id)}
@@ -412,7 +461,7 @@ const HomePage = () => {
                              </div>
                          ) : (
                               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                                  {filteredItems.map(coach => (
+                                   {(filteredItems as FilteredCoach[]).map(coach => (
                                          <button
                                              key={`${coach.trainId}-${coach.id}`}
                                              onClick={() => { setSelectedTrainId(coach.trainId); setSelectedCoachId(coach.id); setView('TRAIN'); }}
@@ -427,10 +476,11 @@ const HomePage = () => {
                                                  <StatusIndicator status={coach.status} />
                                                  <ChevronRight className={`w-4 h-4 ${coach.status === 'critical' ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`} />
                                              </div>
-                                             <div className="text-center">
-                                                 <div className="font-bold text-xl text-slate-700 dark:text-slate-300">{coach.id}</div>
-                                                 <div className="text-sm text-slate-500 dark:text-slate-400">{coach.trainId}</div>
-                                             </div>
+                                              <div className="text-center">
+                                                  <div className="font-bold text-xl text-slate-700 dark:text-slate-300">{coach.id}</div>
+                                                  <div className="text-sm text-slate-500 dark:text-slate-400">{coach.trainId}</div>
+                                                  {coach.status !== 'healthy' && <div className="text-xs font-mono text-slate-600 dark:text-slate-400 mt-1">{coach.maxWear.toFixed(2)}mm</div>}
+                                              </div>
                                          </button>
                                      ))}
                              </div>
@@ -443,7 +493,7 @@ const HomePage = () => {
                         <h2 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                             <AlertTriangle className="text-rose-500 w-5 h-5" /> Action Required
                         </h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Wheels exceeding wear limits ({LIMIT_CRITICAL}mm)</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Wheels requiring attention ({LIMIT_WARNING}mm+)</p>
                     </div>
                     <div className="overflow-y-auto flex-1 p-2">
                         {criticalIssues.map((issue, idx) => (
@@ -454,26 +504,15 @@ const HomePage = () => {
                                     setSelectedCoachId(issue.coach);
                                     handleWheelClick(issue.wheel);
                                 }}
-                                className="p-3 mb-2 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors group"
+                                className={`border-l-4 ${issue.wheel.status === 'critical' ? 'border-l-rose-500' : 'border-l-amber-500'} bg-white dark:bg-slate-800 p-3 mb-2 rounded-r-lg cursor-pointer transition-colors group`}
                             >
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className="font-bold text-sm text-slate-700 dark:text-slate-300">{issue.train} <span className="font-normal text-slate-400 dark:text-slate-500">/</span> {issue.coach}</span>
-                                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${issue.wheel.status === 'critical' ? 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'}`}>
-                                        {issue.wheel.status}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center mt-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
-                                            {issue.wheel.position}
-                                        </div>
-                                        <div>
-                                             <div className="text-xs text-slate-400 dark:text-slate-500">Max Wear</div>
-                                             <div className="text-sm font-mono font-semibold dark:text-slate-200">{issue.wheel.maxVal}mm</div>
-                                        </div>
-                                    </div>
-                                    <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500" />
-                                </div>
+                                <div className="flex justify-between items-center">
+                                     <div>
+                                         <div className="font-semibold text-slate-700 dark:text-slate-300">{issue.train} / {issue.coach} - {issue.wheel.position}</div>
+                                         <div className="text-lg font-mono font-bold text-slate-800 dark:text-slate-200">{issue.wheel.maxVal}mm <span className="text-xs text-slate-500">Max Wear</span></div>
+                                     </div>
+                                     <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500" />
+                                 </div>
                             </div>
                         ))}
                     </div>
