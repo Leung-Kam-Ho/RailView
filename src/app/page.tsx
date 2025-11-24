@@ -9,6 +9,7 @@ import {
     AlertTriangle, Train, Search, ChevronRight, Activity,
     ArrowLeft, Info, X, RefreshCw
 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // --- CONSTANTS & LOGIC ---
 
@@ -222,11 +223,11 @@ const StatusIndicator = ({ status, size = 'md' }: { status: 'healthy' | 'warning
 const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) => {
     if (!wheel) return <div className="w-24 h-24"></div>;
     
-    const statusColors = {
+    const statusColors: Record<'healthy' | 'warning' | 'critical', string> = {
         healthy: 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100 dark:bg-green-950 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900',
         warning: 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900',
         critical: 'bg-rose-50 border-rose-500 text-rose-700 hover:bg-rose-100 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900'
-    } as const;
+    };
 
     return (
         <div className="flex flex-col items-center gap-2">
@@ -234,10 +235,10 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
             <div className="relative">
                 <button
                     onClick={onClick}
-                    className={`
-                        w-24 h-24 rounded-full border-4 shadow-sm transition-all hover:scale-105 flex flex-col items-center justify-center
-                        ${statusColors[wheel.status]}
-                    `}
+                        className={`
+                            w-24 h-24 rounded-full border-4 shadow-sm transition-all hover:scale-105 flex flex-col items-center justify-center
+                            ${statusColors[wheel.status as 'healthy' | 'warning' | 'critical']}
+                        `}
                 >
                     <div className="text-sm font-medium opacity-60">Wear</div>
                     <div className="text-xl font-bold font-mono">{wheel.currentVal}</div>
@@ -262,6 +263,7 @@ const HomePage = () => {
     const [viewMode, setViewMode] = useState<'trainset' | 'coach'>('coach');
     const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
     const [coachTypeFilter, setCoachTypeFilter] = useState<'all' | 'D' | 'P' | 'M' | 'F'>('all');
+
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -302,22 +304,32 @@ const HomePage = () => {
 
     const filteredItems = useMemo(() => {
         if (viewMode === 'trainset') {
-            return fleetData.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) && (statusFilter === 'all' || t.status === statusFilter)).sort((a, b) => {
-                const statusOrder = { critical: 3, warning: 2, healthy: 1 };
-                const aOrder = statusOrder[a.status];
-                const bOrder = statusOrder[b.status];
-                if (aOrder !== bOrder) return bOrder - aOrder;
-                return a.id.localeCompare(b.id);
-            });
+            let trains = fleetData.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) && (statusFilter === 'all' || t.status === statusFilter));
+            if (true) {
+                trains.sort((a, b) => {
+                    const statusOrder = { critical: 3, warning: 2, healthy: 1 };
+                    const aOrder = statusOrder[a.status];
+                    const bOrder = statusOrder[b.status];
+                    if (aOrder !== bOrder) return bOrder - aOrder;
+                    return a.id.localeCompare(b.id);
+                });
+            } else {
+                trains.sort((a, b) => a.id.localeCompare(b.id));
+            }
+            return trains;
         } else {
             let coaches = fleetData.flatMap(t => t.coaches.filter(c => (c.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase())) && (statusFilter === 'all' || c.status === statusFilter) && (coachTypeFilter === 'all' || c.id.startsWith(coachTypeFilter))).map(c => ({ ...c, trainId: t.id, trainStatus: t.status })));
-            coaches.sort((a, b) => {
-                const statusOrder = { critical: 3, warning: 2, healthy: 1 };
-                const aOrder = statusOrder[a.status];
-                const bOrder = statusOrder[b.status];
-                if (aOrder !== bOrder) return bOrder - aOrder;
-                return b.maxWear - a.maxWear;
-            });
+            if (true) {
+                coaches.sort((a, b) => {
+                    const statusOrder = { critical: 3, warning: 2, healthy: 1 };
+                    const aOrder = statusOrder[a.status];
+                    const bOrder = statusOrder[b.status];
+                    if (aOrder !== bOrder) return bOrder - aOrder;
+                    return b.maxWear - a.maxWear;
+                });
+            } else {
+                coaches.sort((a, b) => a.trainId.localeCompare(b.trainId) || b.maxWear - a.maxWear);
+            }
             return coaches;
         }
     }, [fleetData, viewMode, searchTerm, statusFilter, coachTypeFilter]);
@@ -379,64 +391,58 @@ const HomePage = () => {
                              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                  <Train className="text-indigo-600" /> {'RailView'}
                              </h1>
-                             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time Wheel Wear Analysis • {viewMode === 'trainset' ? '37 Active Trains' : 'Coaches Overview'}</p>
-                             <p className="text-xs text-slate-400 dark:text-slate-500">Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}</p>
                         </div>
-                        <div className="flex items-center gap-4">
-                             <div className="relative">
-                                 <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
-                                 <input
-                                     type="text"
-                                     placeholder="Search TS01..."
-                                     className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
-                                     value={searchTerm}
-                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                 />
-                             </div>
-                              <button
-                                  onClick={loadData}
-                                  disabled={isLoading}
-                                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
-                              >
-                                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                                  {isLoading ? 'Fetching...' : 'Fetch'}
-                              </button>
-                              <div className="flex gap-2">
-                                  <button
-                                      onClick={() => setViewMode('trainset')}
-                                      className={`px-3 py-2 rounded-lg text-sm font-medium ${viewMode === 'trainset' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
-                                  >
-                                      Trainset
-                                  </button>
-                                  <button
-                                      onClick={() => setViewMode('coach')}
-                                      className={`px-3 py-2 rounded-lg text-sm font-medium ${viewMode === 'coach' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
-                                  >
-                                      Coach
-                                  </button>
+                         <div className="flex items-center gap-6">
+                              <div className="relative">
+                                  <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
+                                  <input
+                                      type="text"
+                                      placeholder="Search TS01..."
+                                      className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
+                                      value={searchTerm}
+                                      onChange={(e) => setSearchTerm(e.target.value)}
+                                  />
                               </div>
-                              <div className="flex gap-2 text-xs font-medium">
-                                  <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All</button>
-                                  <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'}`}>
-                                      <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
-                                  </button>
-                                  <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'}`}>
-                                      <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
-                                  </button>
-                              </div>
-                              {viewMode === 'coach' && (
-                                  <div className="flex gap-2 text-xs font-medium">
-                                      <button onClick={() => setCoachTypeFilter('all')} className={`px-2 py-1 rounded ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All Types</button>
-                                      <button onClick={() => setCoachTypeFilter('D')} className={`px-2 py-1 rounded ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>D</button>
-                                      <button onClick={() => setCoachTypeFilter('P')} className={`px-2 py-1 rounded ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>P</button>
-                                      <button onClick={() => setCoachTypeFilter('M')} className={`px-2 py-1 rounded ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>M</button>
-                                      <button onClick={() => setCoachTypeFilter('F')} className={`px-2 py-1 rounded ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>F</button>
-                                  </div>
-                              )}
-                        </div>
-                    </header>
+                                <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'trainset' | 'coach')}>
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="trainset">Trainset</TabsTrigger>
+                                        <TabsTrigger value="coach">Coach</TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
+                                <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
+                                   <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
+                                   <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950'}`}>
+                                       <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
+                                   </button>
+                                   <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950'}`}>
+                                       <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
+                                   </button>
+                               </div>
+                               {viewMode === 'coach' && (
+                                   <div className="flex gap-2 text-xs font-medium ml-4">
+                                       <button onClick={() => setCoachTypeFilter('all')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All Types</button>
+                                       <button onClick={() => setCoachTypeFilter('D')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>D</button>
+                                       <button onClick={() => setCoachTypeFilter('P')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>P</button>
+                                       <button onClick={() => setCoachTypeFilter('M')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>M</button>
+                                       <button onClick={() => setCoachTypeFilter('F')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>F</button>
+                                   </div>
+                               )}
+                               <button
+                                   onClick={loadData}
+                                   disabled={isLoading}
+                                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ml-4"
+                               >
+                                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                   {isLoading ? 'Fetching...' : 'Fetch'}
+                               </button>
+                         </div>
+                     </header>
 
-                     <main className="flex-1 overflow-y-auto p-6">
+                     <div className="px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
+                         Real-time Wheel Wear Analysis • {viewMode === 'trainset' ? '37 Active Trains' : 'Coaches Overview'} • Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
+                     </div>
+
+                      <main className="flex-1 overflow-y-auto p-6">
                          {viewMode === 'trainset' ? (
                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                                   {(filteredItems as Train[]).map(train => (
