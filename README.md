@@ -68,7 +68,7 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env.local` file with your Google AI credentials:
+Create a `.env.local` file with your MongoDB connection string:
 ```env
 MONGODB_URI=<your-mongodb-uri>
 ```
@@ -126,6 +126,7 @@ Detects unusual patterns in wheel wear data using machine learning. Analyzes wea
 - Sudden wear spikes
 - Abnormal wear rates
 - Deviations from expected patterns
+- Wheel Noise / Cavity Detection
 
 ## Data Model
 
