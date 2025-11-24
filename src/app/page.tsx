@@ -72,13 +72,14 @@ const fetchFleet = async () => {
                          status = 'warning';
                      }
 
-                    wheels.push({
-                        id: `${trainId}-${coachId}-${wheelId}`,
-                        position: wheelId,
-                        status: status,
-                        currentVal: currentVal,
-                        trend: [] // Will load on demand
-                    });
+                     wheels.push({
+                         id: `${trainId}-${coachId}-${wheelId}`,
+                         position: wheelId,
+                         status: status,
+                         currentVal: currentVal,
+                         maxVal: record.max.toFixed(2),
+                         trend: [] // Will load on demand
+                     });
 
                     if (status === 'critical') coachStatus = 'critical';
                     else if (status === 'warning' && coachStatus !== 'critical') coachStatus = 'warning';
@@ -149,15 +150,27 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
         // Sort by date
         aggregated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-        // Sample every 7 days
+        // Sample every 3 days
         const sampled = [];
-        for (let i = 0; i < aggregated.length; i += 7) {
+        for (let i = 0; i < aggregated.length; i += 3) {
             const r = aggregated[i];
             sampled.push({
                 date: new Date(r.date).toISOString().split('T')[0],
                 valMean: parseFloat(r.mean),
                 valMin: parseFloat(r.min),
                 valMax: parseFloat(r.max),
+                isPrediction: false
+            });
+        }
+
+        // Always include the latest data point to match currentVal
+        const latest = aggregated[aggregated.length - 1];
+        if (latest && (sampled.length === 0 || sampled[sampled.length - 1].date !== new Date(latest.date).toISOString().split('T')[0])) {
+            sampled.push({
+                date: new Date(latest.date).toISOString().split('T')[0],
+                valMean: parseFloat(latest.mean),
+                valMin: parseFloat(latest.min),
+                valMax: parseFloat(latest.max),
                 isPrediction: false
             });
         }
@@ -221,6 +234,8 @@ const HomePage = () => {
     const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
     const [selectedWheel, setSelectedWheel] = useState<any | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [viewMode, setViewMode] = useState<'trainset' | 'coach'>('coach');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -256,8 +271,26 @@ const HomePage = () => {
                 });
             });
         });
-        return issues.sort((a, b) => parseFloat(b.wheel.currentVal) - parseFloat(a.wheel.currentVal)); 
+        return issues.sort((a, b) => parseFloat(b.wheel.maxVal) - parseFloat(a.wheel.maxVal));
     }, [fleetData, isClient]);
+
+    const filteredItems = useMemo(() => {
+        if (viewMode === 'trainset') {
+            return fleetData.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) && (statusFilter === 'all' || t.status === statusFilter));
+        } else {
+            return fleetData.flatMap(t => t.coaches.filter(c => (c.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase())) && (statusFilter === 'all' || c.status === statusFilter)).map(c => ({ ...c, trainId: t.id, trainStatus: t.status })));
+        }
+    }, [fleetData, viewMode, searchTerm, statusFilter]);
+
+    const filteredCriticalCount = useMemo(() => {
+        if (statusFilter === 'warning') return 0;
+        return filteredItems.filter((item: any) => item.status === 'critical').length;
+    }, [filteredItems, statusFilter]);
+
+    const filteredWarningCount = useMemo(() => {
+        if (statusFilter === 'critical') return 0;
+        return filteredItems.filter((item: any) => item.status === 'warning').length;
+    }, [filteredItems, statusFilter]);
 
     const handleTrainSelect = (id: string) => {
         setSelectedTrainId(id);
@@ -303,10 +336,11 @@ const HomePage = () => {
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                     <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-6 flex justify-between items-center">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <Train className="text-indigo-600" /> Fleet Monitoring System
-                            </h1>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time Wheel Wear Analysis • 37 Active Trains</p>
+                             <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                 <Train className="text-indigo-600" /> {viewMode === 'trainset' ? 'Fleet Monitoring System' : 'Coach Monitoring System'}
+                             </h1>
+                             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time Wheel Wear Analysis • {viewMode === 'trainset' ? '37 Active Trains' : 'Coaches Overview'}</p>
+                             <p className="text-xs text-slate-400 dark:text-slate-500">Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}</p>
                         </div>
                         <div className="flex items-center gap-4">
                              <div className="relative">
@@ -319,48 +353,89 @@ const HomePage = () => {
                                      onChange={(e) => setSearchTerm(e.target.value)}
                                  />
                              </div>
-                             <button
-                                 onClick={loadData}
-                                 disabled={isLoading}
-                                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
-                             >
-                                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                                 {isLoading ? 'Fetching...' : 'Fetch'}
-                             </button>
+                              <button
+                                  onClick={loadData}
+                                  disabled={isLoading}
+                                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                              >
+                                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                  {isLoading ? 'Fetching...' : 'Fetch'}
+                              </button>
+                              <div className="flex gap-2">
+                                  <button
+                                      onClick={() => setViewMode('trainset')}
+                                      className={`px-3 py-2 rounded-lg text-sm font-medium ${viewMode === 'trainset' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+                                  >
+                                      Trainset
+                                  </button>
+                                  <button
+                                      onClick={() => setViewMode('coach')}
+                                      className={`px-3 py-2 rounded-lg text-sm font-medium ${viewMode === 'coach' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+                                  >
+                                      Coach
+                                  </button>
+                              </div>
                              <div className="flex gap-2 text-xs font-medium">
-                                <span className="flex items-center gap-1 px-2 py-1 bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 rounded">
-                                    <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
-                                </span>
-                                <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded">
-                                    <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
-                                </span>
-                            </div>
+                                 <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All</button>
+                                 <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'}`}>
+                                     <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
+                                 </button>
+                                 <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-2 py-1 rounded ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'}`}>
+                                     <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
+                                 </button>
+                             </div>
                         </div>
                     </header>
 
-                    <main className="flex-1 overflow-y-auto p-6">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                            {filteredFleet.map(train => (
-                                <button 
-                                    key={train.id}
-                                    onClick={() => handleTrainSelect(train.id)}
-                                    className={`
-                                        relative group p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 h-32
-                                        ${train.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
-                                        train.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
-                                        'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
-                                    `}
-                                >
-                                    <div className="flex items-center justify-between w-full absolute top-3 px-3">
-                                        <StatusIndicator status={train.status} />
-                                        <ChevronRight className={`w-4 h-4 ${train.status === 'critical' ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`} />
-                                    </div>
-                                    <Train className={`w-8 h-8 ${train.status === 'critical' ? 'text-rose-600' : train.status === 'warning' ? 'text-amber-600' : 'text-green-600 group-hover:text-green-700'}`} />
-                                    <span className="font-bold text-lg text-slate-700 dark:text-slate-300">{train.id}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </main>
+                     <main className="flex-1 overflow-y-auto p-6">
+                         {viewMode === 'trainset' ? (
+                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                                 {filteredItems.map(train => (
+                                     <button
+                                         key={train.id}
+                                         onClick={() => handleTrainSelect(train.id)}
+                                         className={`
+                                             relative group p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 h-32
+                                             ${train.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
+                                             train.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
+                                             'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
+                                         `}
+                                     >
+                                         <div className="flex items-center justify-between w-full absolute top-3 px-3">
+                                             <StatusIndicator status={train.status} />
+                                             <ChevronRight className={`w-4 h-4 ${train.status === 'critical' ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`} />
+                                         </div>
+                                         <Train className={`w-8 h-8 ${train.status === 'critical' ? 'text-rose-600' : train.status === 'warning' ? 'text-amber-600' : 'text-green-600 group-hover:text-green-700'}`} />
+                                         <span className="font-bold text-lg text-slate-700 dark:text-slate-300">{train.id}</span>
+                                     </button>
+                                 ))}
+                             </div>
+                         ) : (
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                                  {filteredItems.map(coach => (
+                                         <button
+                                             key={`${coach.trainId}-${coach.id}`}
+                                             onClick={() => { setSelectedTrainId(coach.trainId); setSelectedCoachId(coach.id); setView('TRAIN'); }}
+                                             className={`
+                                                 relative group p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 h-32
+                                                 ${coach.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
+                                                 coach.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
+                                                 'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
+                                             `}
+                                         >
+                                             <div className="flex items-center justify-between w-full absolute top-3 px-3">
+                                                 <StatusIndicator status={coach.status} />
+                                                 <ChevronRight className={`w-4 h-4 ${coach.status === 'critical' ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`} />
+                                             </div>
+                                             <div className="text-center">
+                                                 <div className="font-bold text-xl text-slate-700 dark:text-slate-300">{coach.id}</div>
+                                                 <div className="text-sm text-slate-500 dark:text-slate-400">{coach.trainId}</div>
+                                             </div>
+                                         </button>
+                                     ))}
+                             </div>
+                         )}
+                     </main>
                 </div>
 
                 <div className="w-80 bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 flex flex-col h-full shadow-xl z-10">
@@ -393,8 +468,8 @@ const HomePage = () => {
                                             {issue.wheel.position}
                                         </div>
                                         <div>
-                                            <div className="text-xs text-slate-400 dark:text-slate-500">Wear Level</div>
-                                            <div className="text-sm font-mono font-semibold dark:text-slate-200">{issue.wheel.currentVal}mm</div>
+                                             <div className="text-xs text-slate-400 dark:text-slate-500">Max Wear</div>
+                                             <div className="text-sm font-mono font-semibold dark:text-slate-200">{issue.wheel.maxVal}mm</div>
                                         </div>
                                     </div>
                                     <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500" />
@@ -601,18 +676,19 @@ const HomePage = () => {
                                                 cursor={{stroke: 'hsl(var(--accent))'}}
                                             />
                                             
-                                            <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
-                                            <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
+                                             <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
+                                             <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
+                                             <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
 
-                                             {/* Mean line */}
-                                             <Line
-                                                 type="monotone"
-                                                 dataKey="valMean"
-                                                 stroke="#f97316" // orange
-                                                 strokeWidth={2}
-                                                 dot={false}
-                                                 name="Mean"
-                                             />
+                                              {/* Mean line */}
+                                              <Line
+                                                  type="monotone"
+                                                  dataKey="valMean"
+                                                  stroke="#f97316" // orange
+                                                  strokeWidth={2}
+                                                  dot={false}
+                                                  name="Mean"
+                                              />
 
                                              {/* Min line */}
                                              <Line
