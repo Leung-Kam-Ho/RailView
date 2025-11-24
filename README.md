@@ -11,7 +11,7 @@ A comprehensive rail wheel wear monitoring system built with Next.js, Firebase, 
 
 As someone who primarily designs UIs with Qt and Swift, I found the web frontend challenging, so the entire frontend (This repo) was "vibe coded" through AI assistance.
 
-This entire application was developed using cutting-edge AI-powered tools, specifically Google's Firebase Studio combined with Opencode and Grok Code Fast. Every aspect of the project, from initial concept to final deployment, was created through AI assistance, demonstrating the transformative potential of AI-driven software development.
+This entire application was developed using cutting-edge AI-powered tools, specifically Gemini 3 Canvas, Firebase Studio, and Opencode CLI with Grok Code Fast. Every aspect of the project, from initial concept to final deployment, was created through AI assistance, demonstrating the transformative potential of AI-driven software development.
 
 ### Key Highlights
 
@@ -22,7 +22,7 @@ This entire application was developed using cutting-edge AI-powered tools, speci
 The development process leveraged:
 - **Gemini 3 Canvas**: For prototyping
 - **Firebase Studio**: For frontend development
-- **Opencode CLI (with Grok Code Fast)**: For debug + connecting backends
+- **Opencode CLI (with Grok Code Fast)**: For debug + connecting DB
 
 This approach showcases how AI tools can dramatically accelerate development cycles while maintaining code quality and functionality.
 
@@ -106,6 +106,9 @@ src/
 │   ├── genkit.ts                        # AI configuration
 │   └── dev.ts                           # Development setup
 ├── app/
+│   ├── api/
+│   │   └── predictions/
+│   │       └── route.ts                 # API routes for predictions
 │   ├── actions.ts                       # Server actions
 │   ├── favicon.ico
 │   ├── globals.css                      # Global styles
@@ -115,6 +118,7 @@ src/
 │   └── ui/                              # Reusable UI components
 ├── hooks/                               # Custom React hooks
 └── lib/
+    ├── placeholder-images.json          # Mock image data
     ├── placeholder-images.ts            # Mock data utilities
     ├── types.ts                         # TypeScript types
     └── utils.ts                         # Utility functions
