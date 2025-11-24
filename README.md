@@ -22,7 +22,7 @@ This entire application was developed using cutting-edge AI-powered tools, speci
 The development process leveraged:
 - **Gemini 3 Canvas**: For prototyping
 - **Firebase Studio**: For frontend development
-- **Opencode CLI (with Grok Code Fast)**: For debug + connecting DB
+- **Opencode CLI (with Grok Code Fast)**: For debug + connecting backends
 
 This approach showcases how AI tools can dramatically accelerate development cycles while maintaining code quality and functionality.
 
