@@ -31,7 +31,7 @@ This approach showcases how AI tools can dramatically accelerate development cyc
 - **Fleet Monitoring**: Real-time dashboard for 37 active trains (TS01-TS37)
 - **Hierarchical Navigation**: Drill down from fleet → train → coach → individual wheel
 - **Wear Trend Analysis**: Interactive charts showing historical and predicted wear levels
-- **AI Anomaly Detection**: Automated detection of unusual wear patterns using Genkit AI
+- **AI Anomaly Detection**: Automated detection of unusual wear patterns using CNN+Transformer Fusion model
 - **Predictive Maintenance**: Alerts for wheels approaching critical wear limits (35mm condemning, 34mm warning)
 - **Wear Trend Summaries**: AI-generated insights for maintenance planning
 - **Responsive Design**: Modern UI with Tailwind CSS and Radix UI components
@@ -43,7 +43,6 @@ This approach showcases how AI tools can dramatically accelerate development cyc
 - **Backend**: Next.js API Routes
 - **AI**: Google GenAI via Genkit for anomaly detection and trend analysis
 - **Charts**: Recharts for data visualization
-- **Forms**: React Hook Form with Zod validation
 
 ## Getting Started
 
@@ -69,8 +68,7 @@ npm install
 3. Set up environment variables:
 Create a `.env.local` file with your Google AI credentials:
 ```env
-# Google AI
-GOOGLE_GENAI_API_KEY=your_google_ai_api_key
+MONGODB_URI=<your-mongodb-uri>
 ```
 
 4. Start the development server:
@@ -127,23 +125,19 @@ Detects unusual patterns in wheel wear data using machine learning. Analyzes wea
 - Abnormal wear rates
 - Deviations from expected patterns
 
-### Wear Trend Summary Flow
-Generates human-readable summaries of wear trends over specified time periods (week/month/year), highlighting concerning patterns for maintenance planning.
-
 ## Data Model
 
 The system simulates a fleet of 37 trains with the following hierarchy:
 - **Train**: TS01-TS37, each with 9 coaches
 - **Coach**: Formation pattern D-P-M+M-P-F+M-P-D (increments by 3 per train)
 - **Wheel**: 8 wheels per coach (4 upper, 4 lower positions: 1U-4U, 1D-4D)
-- **Wear Data**: Historical (180 days) + predicted (30 days) wear levels
+- **Wear Data**: Historical (2024-AUG ~ present) + predicted (30 days) wear levels
 
 ## Wear Thresholds
 
 - **Healthy**: < 34.0mm
 - **Warning**: 34.0-35.0mm
 - **Critical**: > 35.0mm (requires immediate replacement)
-
 
 
 ## Contributing
