@@ -2,7 +2,10 @@
 
 A comprehensive rail wheel wear monitoring system built with Next.js, Firebase, and AI-powered anomaly detection. Monitor train fleets, track wheel wear trends, and receive predictive maintenance alerts.
 
-**Note**: This project is completely vibe coded with Google's Firebase Studio + Opencode with Grok Code Fast.
+![Design](media/design.png)
+![RailView Screenshot](media/MainUI.png)
+![TrainView Screenshot](media/TrainView.png)
+![WheelView Screenshot](media/WheelView.png)
 
 ## AI-Generated Development
 
@@ -22,11 +25,6 @@ The development process leveraged:
 - **Grok Code Fast**: For accelerated development and AI-powered problem-solving
 
 This approach showcases how AI tools can dramatically accelerate development cycles while maintaining code quality and functionality.
-
-![Design](media/design.png)
-![RailView Screenshot](media/MainUI.png)
-![TrainView Screenshot](media/TrainView.png)
-![WheelView Screenshot](media/WheelView.png)
 
 ## Features
 
