@@ -7,9 +7,16 @@ import {
 } from 'recharts';
 import {
     AlertTriangle, Train, Search, ChevronRight, Activity,
-    ArrowLeft, Info, X, RefreshCw
+    ArrowLeft, Info, X, RefreshCw, ChevronDown
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // --- CONSTANTS & LOGIC ---
 
@@ -263,6 +270,7 @@ const HomePage = () => {
     const [viewMode, setViewMode] = useState<'trainset' | 'coach'>('coach');
     const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
     const [coachTypeFilter, setCoachTypeFilter] = useState<'all' | 'D' | 'P' | 'M' | 'F'>('all');
+    const [sortBy, setSortBy] = useState<'status' | 'trainset' | 'coachId' | 'wear'>('status');
 
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -319,7 +327,7 @@ const HomePage = () => {
             return trains;
         } else {
             let coaches = fleetData.flatMap(t => t.coaches.filter(c => (c.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase())) && (statusFilter === 'all' || c.status === statusFilter) && (coachTypeFilter === 'all' || c.id.startsWith(coachTypeFilter))).map(c => ({ ...c, trainId: t.id, trainStatus: t.status })));
-            if (true) {
+            if (sortBy === 'status') {
                 coaches.sort((a, b) => {
                     const statusOrder = { critical: 3, warning: 2, healthy: 1 };
                     const aOrder = statusOrder[a.status];
@@ -327,12 +335,16 @@ const HomePage = () => {
                     if (aOrder !== bOrder) return bOrder - aOrder;
                     return b.maxWear - a.maxWear;
                 });
-            } else {
-                coaches.sort((a, b) => a.trainId.localeCompare(b.trainId) || b.maxWear - a.maxWear);
+            } else if (sortBy === 'trainset') {
+                coaches.sort((a, b) => a.trainId.localeCompare(b.trainId) || a.id.localeCompare(b.id));
+            } else if (sortBy === 'coachId') {
+                coaches.sort((a, b) => a.id.localeCompare(b.id));
+            } else if (sortBy === 'wear') {
+                coaches.sort((a, b) => b.maxWear - a.maxWear);
             }
             return coaches;
         }
-    }, [fleetData, viewMode, searchTerm, statusFilter, coachTypeFilter]);
+    }, [fleetData, viewMode, searchTerm, statusFilter, coachTypeFilter, sortBy]);
 
     const filteredCriticalCount = useMemo(() => {
         if (statusFilter === 'warning') return 0;
@@ -409,24 +421,7 @@ const HomePage = () => {
                                         <TabsTrigger value="coach">Coach</TabsTrigger>
                                     </TabsList>
                                 </Tabs>
-                                <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
-                                   <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
-                                   <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950'}`}>
-                                       <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
-                                   </button>
-                                   <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950'}`}>
-                                       <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
-                                   </button>
-                               </div>
-                               {viewMode === 'coach' && (
-                                   <div className="flex gap-2 text-xs font-medium ml-4">
-                                       <button onClick={() => setCoachTypeFilter('all')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All Types</button>
-                                       <button onClick={() => setCoachTypeFilter('D')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>D</button>
-                                       <button onClick={() => setCoachTypeFilter('P')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>P</button>
-                                       <button onClick={() => setCoachTypeFilter('M')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>M</button>
-                                       <button onClick={() => setCoachTypeFilter('F')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>F</button>
-                                   </div>
-                               )}
+
                                <button
                                    onClick={loadData}
                                    disabled={isLoading}
@@ -438,9 +433,47 @@ const HomePage = () => {
                          </div>
                      </header>
 
-                     <div className="px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
-                         Real-time Wheel Wear Analysis • {viewMode === 'trainset' ? '37 Active Trains' : 'Coaches Overview'} • Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
-                     </div>
+                      <div className="px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                          <div>
+                              Wheel Wear Analysis • Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
+                          </div>
+                          <div className="flex gap-2 items-center">
+                              <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
+                                  <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
+                                  <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950'}`}>
+                                      <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
+                                  </button>
+                                  <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950'}`}>
+                                      <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
+                                  </button>
+                              </div>
+                              {viewMode === 'coach' && (
+                                  <div className="flex gap-2 text-xs font-medium">
+                                      <button onClick={() => setCoachTypeFilter('all')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All Types</button>
+                                      <button onClick={() => setCoachTypeFilter('D')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>D</button>
+                                      <button onClick={() => setCoachTypeFilter('P')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>P</button>
+                                      <button onClick={() => setCoachTypeFilter('M')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>M</button>
+                                      <button onClick={() => setCoachTypeFilter('F')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>F</button>
+                                      <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                              <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1 ml-2">
+                                                  Sort By: {sortBy === 'status' ? 'Status' : sortBy === 'trainset' ? 'Trainset' : sortBy === 'coachId' ? 'Coach ID' : 'Wear (Highest First)'}
+                                                  <ChevronDown className="w-3 h-3" />
+                                              </button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent>
+                                              <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as 'status' | 'trainset' | 'coachId' | 'wear')}>
+                                                  <DropdownMenuRadioItem value="status">Status</DropdownMenuRadioItem>
+                                                  <DropdownMenuRadioItem value="trainset">Trainset</DropdownMenuRadioItem>
+                                                  <DropdownMenuRadioItem value="coachId">Coach ID</DropdownMenuRadioItem>
+                                                  <DropdownMenuRadioItem value="wear">Wear (Highest First)</DropdownMenuRadioItem>
+                                              </DropdownMenuRadioGroup>
+                                          </DropdownMenuContent>
+                                      </DropdownMenu>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
 
                       <main className="flex-1 overflow-y-auto p-6">
                          {viewMode === 'trainset' ? (
