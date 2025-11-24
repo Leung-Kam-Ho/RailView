@@ -20,9 +20,9 @@ This entire application was developed using cutting-edge AI-powered tools, speci
 - **Zero Manual Coding**: This project serves as a proof-of-concept for completely AI-generated production applications
 
 The development process leveraged:
-- **Google's Firebase Studio**: For rapid prototyping and Firebase integration
-- **Opencode**: For intelligent code generation and project scaffolding
-- **Grok Code Fast**: For accelerated development and AI-powered problem-solving
+- **Gemini 3 Canvas**: For prototyping
+- **Firebase Studio**: For frontend development
+- **Opencode CLI (with Grok Code Fast)**: For debug + connecting DB
 
 This approach showcases how AI tools can dramatically accelerate development cycles while maintaining code quality and functionality.
 
