@@ -461,7 +461,7 @@ const HomePage = () => {
 
                       <div className="px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center">
                           <div>
-                            Wheel Detail • Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
+                            Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
                           </div>
                           <div className="flex gap-2 items-center">
                               <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
