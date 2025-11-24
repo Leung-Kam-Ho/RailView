@@ -9,14 +9,14 @@ A comprehensive rail wheel wear monitoring system built with Next.js, Firebase, 
 
 ## AI-Generated Development
 
+As someone who primarily designs UIs with Qt and Swift, I found the web frontend challenging, so the entire frontend (This repo) was "vibe coded" through AI assistance.
+
 This entire application was developed using cutting-edge AI-powered tools, specifically Google's Firebase Studio combined with Opencode and Grok Code Fast. Every aspect of the project, from initial concept to final deployment, was created through AI assistance, demonstrating the transformative potential of AI-driven software development.
 
 ### Key Highlights
 
 - **Fully AI-Generated Codebase**: Every line of code, including frontend components, backend logic, AI integrations, and documentation, was generated using AI tools
 - **AI-First Architecture**: The system design, data models, and user experience were conceptualized and implemented with AI guidance
-- **Automated Development Workflow**: Components, functions, and features were created through collaborative AI code generation
-- **Iterative AI Refinement**: The codebase evolved through AI-assisted debugging, optimization, and feature enhancement
 - **Zero Manual Coding**: This project serves as a proof-of-concept for completely AI-generated production applications
 
 The development process leveraged:
