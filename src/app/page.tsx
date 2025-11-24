@@ -44,9 +44,9 @@ const fetchFleet = async () => {
             const trainNum = parseInt(trainId.slice(2));
             const baseIndex = 1 + (trainNum - 1) * 3;
             const coachIds = [
-                `D${baseIndex}`,   `P${baseIndex}`,   `M${baseIndex}`,
-                `M${baseIndex+1}`, `P${baseIndex+1}`, `F${baseIndex+1}`,
-                `M${baseIndex+2}`, `P${baseIndex+2}`, `D${baseIndex+2}`
+                `D${baseIndex.toString().padStart(3, '0')}`,   `P${baseIndex.toString().padStart(3, '0')}`,   `M${baseIndex.toString().padStart(3, '0')}`,
+                `M${(baseIndex+1).toString().padStart(3, '0')}`, `P${(baseIndex+1).toString().padStart(3, '0')}`, `F${(baseIndex+1).toString().padStart(3, '0')}`,
+                `M${(baseIndex+2).toString().padStart(3, '0')}`, `P${(baseIndex+2).toString().padStart(3, '0')}`, `D${(baseIndex+2).toString().padStart(3, '0')}`
             ];
 
             const coachMap = grouped[trainId];
@@ -90,12 +90,31 @@ const fetchFleet = async () => {
                 else if (coachStatus === 'warning' && trainStatus !== 'critical') trainStatus = 'warning';
             }
 
-            // Sort coaches by the order in coachIds
-            coaches.sort((a, b) => {
-                const aIndex = coachIds.indexOf(a.id);
-                const bIndex = coachIds.indexOf(b.id);
-                return aIndex - bIndex;
-            });
+            // Sort coaches by number then specific type order for each number
+            const getSortKey = (id: string) => {
+                const match = id.match(/([DPMF])(\d+)/);
+                if (match) {
+                    const type = match[1];
+                    const num = parseInt(match[2]);
+                    let typeIndex = 0;
+                    if (num === 1) {
+                        if (type === 'D') typeIndex = 0;
+                        else if (type === 'P') typeIndex = 1;
+                        else if (type === 'M') typeIndex = 2;
+                    } else if (num === 2) {
+                        if (type === 'M') typeIndex = 0;
+                        else if (type === 'P') typeIndex = 1;
+                        else if (type === 'F') typeIndex = 2;
+                    } else if (num === 3) {
+                        if (type === 'M') typeIndex = 0;
+                        else if (type === 'P') typeIndex = 1;
+                        else if (type === 'D') typeIndex = 2;
+                    }
+                    return num * 100 + typeIndex;
+                }
+                return 0;
+            };
+            coaches.sort((a, b) => getSortKey(a.id) - getSortKey(b.id));
 
             fleet.push({
                 id: trainId,
@@ -103,6 +122,9 @@ const fetchFleet = async () => {
                 coaches: coaches
             });
         }
+
+        // Sort trains by ID
+        fleet.sort((a, b) => a.id.localeCompare(b.id));
 
         return fleet;
     } catch (error) {
@@ -126,8 +148,9 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
             const r = aggregated[i];
             sampled.push({
                 date: new Date(r.date).toISOString().split('T')[0],
-                valHistory: parseFloat(r.mean),
-                valPrediction: null, // Assuming no prediction
+                valMean: parseFloat(r.mean),
+                valMin: parseFloat(r.min),
+                valMax: parseFloat(r.max),
                 isPrediction: false
             });
         }
@@ -183,19 +206,22 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
 };
 
 const HomePage = () => {
-    const [fleetData, setFleetData] = useState<any[]>([]); 
-    const [view, setView] = useState('FLEET'); 
+    const [fleetData, setFleetData] = useState<any[]>([]);
+    const [view, setView] = useState('FLEET');
     const [selectedTrainId, setSelectedTrainId] = useState<string | null>(null);
-    const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null); 
-    const [selectedWheel, setSelectedWheel] = useState<any | null>(null); 
+    const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
+    const [selectedWheel, setSelectedWheel] = useState<any | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isClient, setIsClient] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const loadData = async () => {
+            setIsLoading(true);
             const data = await fetchFleet();
             setFleetData(data);
             setIsClient(true);
+            setIsLoading(false);
         };
         loadData();
     }, []);
@@ -246,8 +272,15 @@ const HomePage = () => {
         setSelectedWheel(null);
     };
 
-    if (!isClient) {
-        return null; // or a loading spinner
+    if (!isClient || isLoading) {
+        return (
+            <div className="flex h-screen bg-slate-50 dark:bg-slate-900 items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600 dark:text-slate-400">Loading fleet data...</p>
+                </div>
+            </div>
+        );
     }
     
     const renderFleetDashboard = () => {
@@ -360,7 +393,7 @@ const HomePage = () => {
         if (!selectedTrainData) return null;
 
         const c = selectedTrainData.coaches;
-        const formationString = c.length >= 9 ? `Formation: ${c[0].id}-${c[1].id}-${c[2].id} + ${c[3].id}-${c[4].id}-${c[5].id} + ${c[6].id}-${c[7].id}-${c[8].id}` : `Formation: ${c.map(co => co.id).join(' - ')}`;
+        const formationString = `Formation: ${c.map(co => co.id).join(' - ')}`;
 
         const wheelsUp = selectedCoachData?.wheels.filter(w => w.position.includes('U')) || [];
         const wheelsDown = selectedCoachData?.wheels.filter(w => w.position.includes('D')) || [];
@@ -553,34 +586,37 @@ const HomePage = () => {
                                             <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
                                             <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
 
-                                            {/* Historical Data: now uses specific key */}
-                                            <Area 
-                                                type="monotone" 
-                                                dataKey="valHistory" 
-                                                stroke="hsl(var(--primary))"
-                                                strokeWidth={3}
-                                                fill="url(#colorValue)" 
-                                                fillOpacity={0.1}
-                                                name="History"
-                                            />
+                                             {/* Mean line */}
+                                             <Line
+                                                 type="monotone"
+                                                 dataKey="valMean"
+                                                 stroke="#f97316" // orange
+                                                 strokeWidth={2}
+                                                 dot={false}
+                                                 name="Mean"
+                                             />
+
+                                             {/* Min line */}
+                                             <Line
+                                                 type="monotone"
+                                                 dataKey="valMin"
+                                                 stroke="#3b82f6" // blue
+                                                 strokeWidth={2}
+                                                 dot={false}
+                                                 name="Min"
+                                             />
+
+                                             {/* Max line */}
+                                             <Line
+                                                 type="monotone"
+                                                 dataKey="valMax"
+                                                 stroke="#ef4444" // red
+                                                 strokeWidth={2}
+                                                 dot={false}
+                                                 name="Max"
+                                             />
                                             
-                                            {/* Prediction Data: now uses specific key */}
-                                            <Line 
-                                                type="monotone" 
-                                                dataKey="valPrediction"
-                                                stroke="hsl(var(--muted-foreground))"
-                                                strokeWidth={2} 
-                                                strokeDasharray="5 5" 
-                                                dot={false}
-                                                name="Prediction"
-                                            />
-                                            
-                                            <defs>
-                                                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                                                </linearGradient>
-                                            </defs>
+
                                         </ComposedChart>
                                     </ResponsiveContainer>
                                 </div>

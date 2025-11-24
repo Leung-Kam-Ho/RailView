@@ -25,8 +25,18 @@ export async function GET(request: NextRequest) {
       const pipeline = [
         { $match: query },
         {
+          $addFields: {
+            dateOnly: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: { $dateFromString: { dateString: '$Datetime' } }
+              }
+            }
+          }
+        },
+        {
           $group: {
-            _id: { date: '$Datetime' }, // Assuming date field is 'Datetime'
+            _id: '$dateOnly',
             mean: { $avg: '$Prediction' },
             min: { $min: '$Prediction' },
             max: { $max: '$Prediction' },
@@ -34,10 +44,10 @@ export async function GET(request: NextRequest) {
             count: { $sum: 1 }
           }
         },
-        { $sort: { '_id.date': 1 } },
+        { $sort: { '_id': 1 } },
         {
           $project: {
-            date: '$_id.date',
+            date: '$_id',
             mean: 1,
             min: 1,
             max: 1,
@@ -54,8 +64,18 @@ export async function GET(request: NextRequest) {
       const pipeline = [
         { $match: query },
         {
+          $addFields: {
+            dateOnly: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: { $dateFromString: { dateString: '$Datetime' } }
+              }
+            }
+          }
+        },
+        {
           $group: {
-            _id: { TrainID: '$TrainID', CoachID: '$CoachID', WheelID: '$WheelID', date: '$Datetime' },
+            _id: { TrainID: '$TrainID', CoachID: '$CoachID', WheelID: '$WheelID', dateOnly: '$dateOnly' },
             mean: { $avg: '$Prediction' },
             min: { $min: '$Prediction' },
             max: { $max: '$Prediction' },
@@ -64,7 +84,7 @@ export async function GET(request: NextRequest) {
           }
         },
         {
-          $sort: { '_id.date': -1 }
+          $sort: { '_id.dateOnly': -1 }
         },
         {
           $group: {
@@ -77,7 +97,7 @@ export async function GET(request: NextRequest) {
             TrainID: '$_id.TrainID',
             CoachID: '$_id.CoachID',
             WheelID: '$_id.WheelID',
-            date: '$latest._id.date',
+            date: '$latest._id.dateOnly',
             mean: '$latest.mean',
             min: '$latest.min',
             max: '$latest.max',
