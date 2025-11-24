@@ -1,6 +1,6 @@
 # RailView
 
-A comprehensive rail wheel wear monitoring system built with Next.js, Firebase, and AI-powered anomaly detection. Monitor train fleets, track wheel wear trends, and receive predictive maintenance alerts.
+A comprehensive rail wheel wear monitoring system built with Next.js and AI-powered anomaly detection. Monitor train fleets, track wheel wear trends, and receive predictive maintenance alerts.
 
 ![Design](media/design.png)
 ![RailView Screenshot](media/MainUI.png)
@@ -11,7 +11,7 @@ A comprehensive rail wheel wear monitoring system built with Next.js, Firebase, 
 
 As someone who primarily designs UIs with Qt and Swift, I found the web frontend challenging, so the entire frontend (This repo) was "vibe coded" through AI assistance.
 
-This entire application was developed using cutting-edge AI-powered tools, specifically Gemini 3 Canvas, Firebase Studio, and Opencode CLI with Grok Code Fast. Every aspect of the project, from initial concept to final deployment, was created through AI assistance, demonstrating the transformative potential of AI-driven software development.
+This entire application was developed using cutting-edge AI-powered tools, specifically Gemini 3 Canvas and Opencode CLI with Grok Code Fast. Every aspect of the project, from initial concept to final deployment, was created through AI assistance, demonstrating the transformative potential of AI-driven software development.
 
 ### Key Highlights
 
@@ -40,7 +40,7 @@ This approach showcases how AI tools can dramatically accelerate development cyc
 
 - **Frontend**: Next.js 15, React 18, TypeScript
 - **Styling**: Tailwind CSS, Radix UI components
-- **Backend**: Firebase (hosting, functions)
+- **Backend**: Next.js API Routes
 - **AI**: Google GenAI via Genkit for anomaly detection and trend analysis
 - **Charts**: Recharts for data visualization
 - **Forms**: React Hook Form with Zod validation
@@ -51,7 +51,7 @@ This approach showcases how AI tools can dramatically accelerate development cyc
 
 - Node.js 18+
 - npm or yarn
-- Firebase CLI (for deployment)
+
 
 ### Installation
 
@@ -67,13 +67,8 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env.local` file with your Firebase and Google AI credentials:
+Create a `.env.local` file with your Google AI credentials:
 ```env
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-
 # Google AI
 GOOGLE_GENAI_API_KEY=your_google_ai_api_key
 ```
@@ -149,35 +144,7 @@ The system simulates a fleet of 37 trains with the following hierarchy:
 - **Warning**: 34.0-35.0mm
 - **Critical**: > 35.0mm (requires immediate replacement)
 
-## Deployment
 
-### Firebase Hosting
-
-1. Install Firebase CLI:
-```bash
-npm install -g firebase-tools
-```
-
-2. Login and initialize:
-```bash
-firebase login
-firebase init hosting
-```
-
-3. Build and deploy:
-```bash
-npm run build
-firebase deploy
-```
-
-### App Hosting
-
-For full-stack deployment with Firebase Functions:
-
-```bash
-firebase init apphosting
-firebase deploy --only apphosting
-```
 
 ## Contributing
 
