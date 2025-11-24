@@ -338,7 +338,33 @@ const HomePage = () => {
             } else if (sortBy === 'trainset') {
                 coaches.sort((a, b) => a.trainId.localeCompare(b.trainId) || a.id.localeCompare(b.id));
             } else if (sortBy === 'coachId') {
-                coaches.sort((a, b) => a.id.localeCompare(b.id));
+                coaches.sort((a, b) => {
+                    const getSortKey = (id: string) => {
+                        const match = id.match(/([DPMF])(\d+)/);
+                        if (match) {
+                            const type = match[1];
+                            const num = parseInt(match[2]);
+                            const mod = num % 3;
+                            let typeIndex = 0;
+                            if (mod === 1) {
+                                if (type === 'D') typeIndex = 0;
+                                else if (type === 'P') typeIndex = 1;
+                                else if (type === 'M') typeIndex = 2;
+                            } else if (mod === 2) {
+                                if (type === 'M') typeIndex = 0;
+                                else if (type === 'P') typeIndex = 1;
+                                else if (type === 'F') typeIndex = 2;
+                            } else if (mod === 0) {
+                                if (type === 'M') typeIndex = 0;
+                                else if (type === 'P') typeIndex = 1;
+                                else if (type === 'D') typeIndex = 2;
+                            }
+                            return num * 100 + typeIndex;
+                        }
+                        return 0;
+                    };
+                    return getSortKey(a.id) - getSortKey(b.id);
+                });
             } else if (sortBy === 'wear') {
                 coaches.sort((a, b) => b.maxWear - a.maxWear);
             }
@@ -447,31 +473,33 @@ const HomePage = () => {
                                       <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
                                   </button>
                               </div>
-                              {viewMode === 'coach' && (
-                                  <div className="flex gap-2 text-xs font-medium">
-                                      <button onClick={() => setCoachTypeFilter('all')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>All Types</button>
-                                      <button onClick={() => setCoachTypeFilter('D')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>D</button>
-                                      <button onClick={() => setCoachTypeFilter('P')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>P</button>
-                                      <button onClick={() => setCoachTypeFilter('M')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>M</button>
-                                      <button onClick={() => setCoachTypeFilter('F')} className={`px-2 py-1.5 rounded ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>F</button>
-                                      <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                              <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1 ml-2">
-                                                  Sort By: {sortBy === 'status' ? 'Status' : sortBy === 'trainset' ? 'Trainset' : sortBy === 'coachId' ? 'Coach ID' : 'Wear (Highest First)'}
-                                                  <ChevronDown className="w-3 h-3" />
-                                              </button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent>
-                                              <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as 'status' | 'trainset' | 'coachId' | 'wear')}>
-                                                  <DropdownMenuRadioItem value="status">Status</DropdownMenuRadioItem>
-                                                  <DropdownMenuRadioItem value="trainset">Trainset</DropdownMenuRadioItem>
-                                                  <DropdownMenuRadioItem value="coachId">Coach ID</DropdownMenuRadioItem>
-                                                  <DropdownMenuRadioItem value="wear">Wear (Highest First)</DropdownMenuRadioItem>
-                                              </DropdownMenuRadioGroup>
-                                          </DropdownMenuContent>
-                                      </DropdownMenu>
-                                  </div>
-                              )}
+                               {viewMode === 'coach' && (
+                                   <>
+                                       <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
+                                           <button onClick={() => setCoachTypeFilter('all')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All Types</button>
+                                           <button onClick={() => setCoachTypeFilter('D')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>D</button>
+                                           <button onClick={() => setCoachTypeFilter('P')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>P</button>
+                                           <button onClick={() => setCoachTypeFilter('M')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>M</button>
+                                           <button onClick={() => setCoachTypeFilter('F')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>F</button>
+                                       </div>
+                                       <DropdownMenu>
+                                           <DropdownMenuTrigger asChild>
+                                               <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1 ml-2">
+                                                   Sort By: {sortBy === 'status' ? 'Status' : sortBy === 'trainset' ? 'Trainset' : sortBy === 'coachId' ? 'Coach ID' : 'Wear (Highest First)'}
+                                                   <ChevronDown className="w-3 h-3" />
+                                               </button>
+                                           </DropdownMenuTrigger>
+                                           <DropdownMenuContent>
+                                               <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as 'status' | 'trainset' | 'coachId' | 'wear')}>
+                                                   <DropdownMenuRadioItem value="status">Status</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="trainset">Trainset</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="coachId">Coach ID</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="wear">Wear (Highest First)</DropdownMenuRadioItem>
+                                               </DropdownMenuRadioGroup>
+                                           </DropdownMenuContent>
+                                       </DropdownMenu>
+                                   </>
+                               )}
                           </div>
                       </div>
 
