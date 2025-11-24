@@ -16,134 +16,127 @@ import {
 const LIMIT_WARNING = 34.0;
 const LIMIT_CRITICAL = 35.0;
 
-// Helper to generate a trend for a specific wheel (INCREASING WEAR)
-const generateTrendData = (baseHealth: 'healthy' | 'warning' | 'critical') => {
-    const data = [];
-    const today = new Date();
-    
-    // Determine "Current" value based on status
-    let currentWear;
-    if (baseHealth === 'critical') currentWear = 35.05 + Math.random() * 0.8; // Above 35.0
-    else if (baseHealth === 'warning') currentWear = 34.05 + Math.random() * 0.9; // Between 34.0 and 35.0
-    else currentWear = 31.0 + Math.random() * 2.9; // Healthy (31.0 - 33.9)
 
-    // 1. GENERATE HISTORY (Go backwards from today)
-    const historyPoints = [];
-    let tempWear = currentWear;
 
-    // We generate 180 days of history
-    for (let i = 0; i <= 180; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        
-        // For history points: valHistory has value, valPrediction is null
-        historyPoints.push({
-            date: date.toISOString().split('T')[0],
-            valHistory: parseFloat(tempWear.toFixed(2)),
-            valPrediction: null,
-            isPrediction: false
+// Fetch and build the Fleet Structure from MongoDB aggregated data
+const fetchFleet = async () => {
+    try {
+        const response = await fetch('/api/predictions');
+        const records: any[] = await response.json();
+
+        // Group records by train, coach, wheel
+        const grouped: { [key: string]: { [key: string]: { [key: string]: any } } } = {};
+        records.forEach(record => {
+            const trainId = record.TrainID;
+            const coachId = record.CoachID;
+            const wheelId = record.WheelID;
+            if (!grouped[trainId]) grouped[trainId] = {};
+            if (!grouped[trainId][coachId]) grouped[trainId][coachId] = {};
+            grouped[trainId][coachId][wheelId] = record;
         });
 
-        // Go back in time -> Wear was LOWER
-        const dailyChange = Math.random() * 0.03 + 0.005;
-        tempWear -= dailyChange;
-        
-        if (tempWear < 30.5) tempWear = 30.5;
-    }
-    // Reverse history so it's chronological (Oldest -> Today)
-    data.push(...historyPoints.reverse());
+        const fleet = [];
+        for (const trainId in grouped) {
+            const coaches = [];
+            let trainStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
 
-    // Fix the "Today" point (last element of data) to be the anchor for prediction
-    if (data.length > 0) {
-        data[data.length - 1].valPrediction = data[data.length - 1].valHistory;
-    }
+            // Calculate baseIndex for coach order
+            const trainNum = parseInt(trainId.slice(2));
+            const baseIndex = 1 + (trainNum - 1) * 3;
+            const coachIds = [
+                `D${baseIndex}`,   `P${baseIndex}`,   `M${baseIndex}`,
+                `M${baseIndex+1}`, `P${baseIndex+1}`, `F${baseIndex+1}`,
+                `M${baseIndex+2}`, `P${baseIndex+2}`, `D${baseIndex+2}`
+            ];
 
-    // 2. GENERATE PREDICTION (Go forward from today)
-    let predictedWear = currentWear;
-    for (let i = 1; i <= 30; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() + i);
-        
-        // Future -> Wear gets HIGHER
-        const dailyChange = Math.random() * 0.03 + 0.005;
-        predictedWear += dailyChange;
+            const coachMap = grouped[trainId];
+            for (const coachId in coachMap) {
+                const wheels = [];
+                let coachStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
 
-        if (baseHealth === 'critical') predictedWear += 0.05;
+                const wheelMap = coachMap[coachId];
+                for (const wheelId in wheelMap) {
+                    const record = wheelMap[wheelId];
 
-        data.push({
-            date: date.toISOString().split('T')[0],
-            valHistory: null, // History line stops
-            valPrediction: parseFloat(predictedWear.toFixed(2)),
-            isPrediction: true
-        });
-    }
-    
-    return { trend: data, currentVal: currentWear.toFixed(2) };
-};
+                    const currentVal = record.mean.toFixed(2);
 
-// Generate the Fleet Structure
-const generateFleet = () => {
-    const fleet = [];
-    
-    for (let t = 1; t <= 37; t++) {
-        const trainId = `TS${t.toString().padStart(2, '0')}`;
-        const coaches = [];
-        let trainStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+                    // Determine status based on mean
+                    const val = parseFloat(currentVal);
+                    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+                    if (val >= LIMIT_CRITICAL) status = 'critical';
+                    else if (val >= LIMIT_WARNING) status = 'warning';
 
-        // Logic: TS01 starts at 1, TS02 starts at 4...
-        const baseIndex = 1 + (t - 1) * 3;
+                    wheels.push({
+                        id: `${trainId}-${coachId}-${wheelId}`,
+                        position: wheelId,
+                        status: status,
+                        currentVal: currentVal,
+                        trend: [] // Will load on demand
+                    });
 
-        const coachIds = [
-            `D${baseIndex}`,   `P${baseIndex}`,   `M${baseIndex}`,
-            `M${baseIndex+1}`, `P${baseIndex+1}`, `F${baseIndex+1}`,
-            `M${baseIndex+2}`, `P${baseIndex+2}`, `D${baseIndex+2}`
-        ];
+                    if (status === 'critical') coachStatus = 'critical';
+                    else if (status === 'warning' && coachStatus !== 'critical') coachStatus = 'warning';
+                }
 
-        coachIds.forEach((coachId, index) => {
-            const wheels = [];
-            let coachStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
-
-            const positions = ['1U', '2U', '3U', '4U', '1D', '2D', '3D', '4D'];
-            
-            positions.forEach(pos => {
-                const rand = Math.random();
-                let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-                // Adjust frequency of issues to make the dashboard interesting
-                if (rand > 0.98) status = 'critical'; 
-                else if (rand > 0.90) status = 'warning';
-
-                const { trend, currentVal } = generateTrendData(status);
-
-                wheels.push({
-                    id: `${trainId}-${coachId}-${pos}`,
-                    position: pos,
-                    status: status,
-                    currentVal: currentVal, 
-                    trend: trend
+                const index = coachIds.indexOf(coachId);
+                coaches.push({
+                    id: coachId,
+                    index: index >= 0 ? index : 0,
+                    status: coachStatus,
+                    wheels: wheels
                 });
 
-                if (status === 'critical') coachStatus = 'critical';
-                else if (status === 'warning' && coachStatus !== 'critical') coachStatus = 'warning';
+                if (coachStatus === 'critical') trainStatus = 'critical';
+                else if (coachStatus === 'warning' && trainStatus !== 'critical') trainStatus = 'warning';
+            }
+
+            // Sort coaches by the order in coachIds
+            coaches.sort((a, b) => {
+                const aIndex = coachIds.indexOf(a.id);
+                const bIndex = coachIds.indexOf(b.id);
+                return aIndex - bIndex;
             });
 
-            coaches.push({
-                id: coachId, 
-                index: index,
-                status: coachStatus,
-                wheels: wheels
+            fleet.push({
+                id: trainId,
+                status: trainStatus,
+                coaches: coaches
             });
+        }
 
-            if (coachStatus === 'critical') trainStatus = 'critical';
-            else if (coachStatus === 'warning' && trainStatus !== 'critical') trainStatus = 'warning';
-        });
-
-        fleet.push({
-            id: trainId,
-            status: trainStatus,
-            coaches: coaches
-        });
+        return fleet;
+    } catch (error) {
+        console.error('Error fetching fleet:', error);
+        return [];
     }
-    return fleet;
+};
+
+// Fetch trend data for a specific wheel
+const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string) => {
+    try {
+        const response = await fetch(`/api/predictions?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}`);
+        const aggregated: any[] = await response.json();
+
+        // Sort by date
+        aggregated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        // Sample every 7 days
+        const sampled = [];
+        for (let i = 0; i < aggregated.length; i += 7) {
+            const r = aggregated[i];
+            sampled.push({
+                date: new Date(r.date).toISOString().split('T')[0],
+                valHistory: parseFloat(r.mean),
+                valPrediction: null, // Assuming no prediction
+                isPrediction: false
+            });
+        }
+
+        return sampled;
+    } catch (error) {
+        console.error('Error fetching wheel trend:', error);
+        return [];
+    }
 };
 
 // --- COMPONENTS ---
@@ -199,8 +192,12 @@ const HomePage = () => {
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        setFleetData(generateFleet());
-        setIsClient(true);
+        const loadData = async () => {
+            const data = await fetchFleet();
+            setFleetData(data);
+            setIsClient(true);
+        };
+        loadData();
     }, []);
 
     const selectedTrainData = useMemo(() => 
@@ -236,7 +233,12 @@ const HomePage = () => {
         setView('TRAIN');
     };
 
-    const handleWheelClick = (wheel: any) => {
+    const handleWheelClick = async (wheel: any) => {
+        if (wheel.trend.length === 0) {
+            const [trainId, coachId, wheelId] = wheel.id.split('-');
+            const trend = await fetchWheelTrend(trainId, coachId, wheelId);
+            wheel.trend = trend;
+        }
         setSelectedWheel(wheel);
     };
 
@@ -358,7 +360,7 @@ const HomePage = () => {
         if (!selectedTrainData) return null;
 
         const c = selectedTrainData.coaches;
-        const formationString = `Formation: ${c[0].id}-${c[1].id}-${c[2].id} + ${c[3].id}-${c[4].id}-${c[5].id} + ${c[6].id}-${c[7].id}-${c[8].id}`;
+        const formationString = c.length >= 9 ? `Formation: ${c[0].id}-${c[1].id}-${c[2].id} + ${c[3].id}-${c[4].id}-${c[5].id} + ${c[6].id}-${c[7].id}-${c[8].id}` : `Formation: ${c.map(co => co.id).join(' - ')}`;
 
         const wheelsUp = selectedCoachData?.wheels.filter(w => w.position.includes('U')) || [];
         const wheelsDown = selectedCoachData?.wheels.filter(w => w.position.includes('D')) || [];
