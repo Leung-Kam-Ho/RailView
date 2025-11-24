@@ -7,6 +7,8 @@ A comprehensive rail wheel wear monitoring system built with Next.js and AI-powe
 ![TrainView Screenshot](media/TrainView.png)
 ![WheelView Screenshot](media/WheelView.png)
 
+***This repository focuses primarily on the frontend implementation of the RailView system. All research, CNN+Transformer Fusion Regression model design, data extraction, and forecasting capabilities are developed in a separate private repository.***
+
 ## AI-Generated Development
 
 As someone who primarily designs UIs with Qt and Swift, I found the web frontend challenging, so the entire frontend (This repo) was "vibe coded" through AI assistance.
