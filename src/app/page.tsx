@@ -377,7 +377,7 @@ const HomePage = () => {
                     <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-6 flex justify-between items-center">
                         <div>
                              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                 <Train className="text-indigo-600" /> {viewMode === 'trainset' ? 'Fleet Monitoring System' : 'Coach Monitoring System'}
+                                 <Train className="text-indigo-600" /> {'RailView'}
                              </h1>
                              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time Wheel Wear Analysis • {viewMode === 'trainset' ? '37 Active Trains' : 'Coaches Overview'}</p>
                              <p className="text-xs text-slate-400 dark:text-slate-500">Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}</p>
