@@ -5,9 +5,9 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
     ResponsiveContainer, ReferenceLine, Area, ComposedChart 
 } from 'recharts';
-import { 
-    AlertTriangle, Train, Search, ChevronRight, Activity, 
-    ArrowLeft, Info, X 
+import {
+    AlertTriangle, Train, Search, ChevronRight, Activity,
+    ArrowLeft, Info, X, RefreshCw
 } from 'lucide-react';
 
 // --- CONSTANTS & LOGIC ---
@@ -58,13 +58,19 @@ const fetchFleet = async () => {
                 for (const wheelId in wheelMap) {
                     const record = wheelMap[wheelId];
 
-                    const currentVal = record.mean.toFixed(2);
+                     const currentVal = record.mean.toFixed(2);
 
-                    // Determine status based on mean
-                    const val = parseFloat(currentVal);
-                    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-                    if (val >= LIMIT_CRITICAL) status = 'critical';
-                    else if (val >= LIMIT_WARNING) status = 'warning';
+                     // Determine status based on mean and max
+                     const meanVal = parseFloat(record.mean);
+                     const maxVal = parseFloat(record.max);
+                     let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+                     if (meanVal >= LIMIT_CRITICAL) {
+                         status = 'critical';
+                     } else if (meanVal > LIMIT_WARNING && maxVal >= LIMIT_CRITICAL) {
+                         status = 'critical';
+                     } else if (meanVal >= LIMIT_WARNING) {
+                         status = 'warning';
+                     }
 
                     wheels.push({
                         id: `${trainId}-${coachId}-${wheelId}`,
@@ -96,16 +102,17 @@ const fetchFleet = async () => {
                 if (match) {
                     const type = match[1];
                     const num = parseInt(match[2]);
+                    const mod = num % 3;
                     let typeIndex = 0;
-                    if (num === 1) {
+                    if (mod === 1) {
                         if (type === 'D') typeIndex = 0;
                         else if (type === 'P') typeIndex = 1;
                         else if (type === 'M') typeIndex = 2;
-                    } else if (num === 2) {
+                    } else if (mod === 2) {
                         if (type === 'M') typeIndex = 0;
                         else if (type === 'P') typeIndex = 1;
                         else if (type === 'F') typeIndex = 2;
-                    } else if (num === 3) {
+                    } else if (mod === 0) {
                         if (type === 'M') typeIndex = 0;
                         else if (type === 'P') typeIndex = 1;
                         else if (type === 'D') typeIndex = 2;
@@ -178,7 +185,7 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
     if (!wheel) return <div className="w-24 h-24"></div>;
     
     const statusColors = {
-        healthy: 'bg-white border-slate-300 text-slate-600 hover:border-indigo-400 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-500',
+        healthy: 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100 dark:bg-green-950 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900',
         warning: 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900',
         critical: 'bg-rose-50 border-rose-500 text-rose-700 hover:bg-rose-100 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900'
     };
@@ -186,21 +193,23 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest">{wheel.position}</div>
-            <button 
-                onClick={onClick}
-                className={`
-                    w-24 h-24 rounded-full border-4 shadow-sm transition-all hover:scale-105 flex flex-col items-center justify-center
-                    ${statusColors[wheel.status]}
-                `}
-            >
-                <div className="text-sm font-medium opacity-60">Wear</div>
-                <div className="text-xl font-bold font-mono">{wheel.currentVal}</div>
-            </button>
-            {wheel.status !== 'healthy' && (
-                <div className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
-                    {wheel.status}
-                </div>
-            )}
+            <div className="relative">
+                <button
+                    onClick={onClick}
+                    className={`
+                        w-24 h-24 rounded-full border-4 shadow-sm transition-all hover:scale-105 flex flex-col items-center justify-center
+                        ${statusColors[wheel.status]}
+                    `}
+                >
+                    <div className="text-sm font-medium opacity-60">Wear</div>
+                    <div className="text-xl font-bold font-mono">{wheel.currentVal}</div>
+                </button>
+                {wheel.status !== 'healthy' && (
+                    <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+                        {wheel.status}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -215,14 +224,15 @@ const HomePage = () => {
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    const loadData = async () => {
+        setIsLoading(true);
+        const data = await fetchFleet();
+        setFleetData(data);
+        setIsClient(true);
+        setIsLoading(false);
+    };
+
     useEffect(() => {
-        const loadData = async () => {
-            setIsLoading(true);
-            const data = await fetchFleet();
-            setFleetData(data);
-            setIsClient(true);
-            setIsLoading(false);
-        };
         loadData();
     }, []);
 
@@ -299,17 +309,25 @@ const HomePage = () => {
                             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Real-time Wheel Wear Analysis • 37 Active Trains</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search TS01..." 
-                                    className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex gap-2 text-xs font-medium">
+                             <div className="relative">
+                                 <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
+                                 <input
+                                     type="text"
+                                     placeholder="Search TS01..."
+                                     className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
+                                     value={searchTerm}
+                                     onChange={(e) => setSearchTerm(e.target.value)}
+                                 />
+                             </div>
+                             <button
+                                 onClick={loadData}
+                                 disabled={isLoading}
+                                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                             >
+                                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                 {isLoading ? 'Fetching...' : 'Fetch'}
+                             </button>
+                             <div className="flex gap-2 text-xs font-medium">
                                 <span className="flex items-center gap-1 px-2 py-1 bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 rounded">
                                     <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
                                 </span>
@@ -328,16 +346,16 @@ const HomePage = () => {
                                     onClick={() => handleTrainSelect(train.id)}
                                     className={`
                                         relative group p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 h-32
-                                        ${train.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' : 
-                                        train.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' : 
-                                        'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md'}
+                                        ${train.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
+                                        train.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
+                                        'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
                                     `}
                                 >
                                     <div className="flex items-center justify-between w-full absolute top-3 px-3">
                                         <StatusIndicator status={train.status} />
                                         <ChevronRight className={`w-4 h-4 ${train.status === 'critical' ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`} />
                                     </div>
-                                    <Train className={`w-8 h-8 ${train.status === 'critical' ? 'text-rose-600' : train.status === 'warning' ? 'text-amber-600' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-600'}`} />
+                                    <Train className={`w-8 h-8 ${train.status === 'critical' ? 'text-rose-600' : train.status === 'warning' ? 'text-amber-600' : 'text-green-600 group-hover:text-green-700'}`} />
                                     <span className="font-bold text-lg text-slate-700 dark:text-slate-300">{train.id}</span>
                                 </button>
                             ))}
