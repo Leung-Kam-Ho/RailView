@@ -751,7 +751,7 @@ const HomePage = () => {
 
                                 <div className="flex-1 w-full min-h-0 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-black/20 p-4">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <ComposedChart data={selectedWheel.trend}>
+                                        <ComposedChart data={selectedWheel.trend} animationDuration={0}>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                                             <XAxis 
                                                 dataKey="date" 
@@ -787,35 +787,38 @@ const HomePage = () => {
                                              <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
                                              <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
 
-                                              {/* Mean line */}
+                                               {/* Mean line */}
+                                               <Line
+                                                   type="monotone"
+                                                   dataKey="valMean"
+                                                   stroke="#f97316" // orange
+                                                   strokeWidth={2}
+                                                   dot={false}
+                                                   name="Mean"
+                                                   animationDuration={0}
+                                               />
+
+                                              {/* Min line */}
                                               <Line
                                                   type="monotone"
-                                                  dataKey="valMean"
-                                                  stroke="#f97316" // orange
+                                                  dataKey="valMin"
+                                                  stroke="#3b82f6" // blue
                                                   strokeWidth={2}
                                                   dot={false}
-                                                  name="Mean"
+                                                  name="Min"
+                                                   animationDuration={0}
                                               />
 
-                                             {/* Min line */}
-                                             <Line
-                                                 type="monotone"
-                                                 dataKey="valMin"
-                                                 stroke="#3b82f6" // blue
-                                                 strokeWidth={2}
-                                                 dot={false}
-                                                 name="Min"
-                                             />
-
-                                             {/* Max line */}
-                                             <Line
-                                                 type="monotone"
-                                                 dataKey="valMax"
-                                                 stroke="#ef4444" // red
-                                                 strokeWidth={2}
-                                                 dot={false}
-                                                 name="Max"
-                                             />
+                                              {/* Max line */}
+                                              <Line
+                                                  type="monotone"
+                                                  dataKey="valMax"
+                                                  stroke="#ef4444" // red
+                                                  strokeWidth={2}
+                                                  dot={false}
+                                                  name="Max"
+                                                   animationDuration={0}
+                                              />
                                             
 
                                         </ComposedChart>
