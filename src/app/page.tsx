@@ -185,7 +185,7 @@ const fetchFleet = async () => {
 };
 
 // Fetch trend data for a specific wheel
-const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string) => {
+const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string, sampleRate: number = 3) => {
     try {
         const response = await fetch(`/api/predictions?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}`);
         const aggregated: any[] = await response.json();
@@ -193,9 +193,9 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
         // Sort by date
         aggregated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-        // Sample every 3 days
+        // Sample every sampleRate days
         const sampled: WheelTrendPoint[] = [];
-        for (let i = 0; i < aggregated.length; i += 3) {
+        for (let i = 0; i < aggregated.length; i += sampleRate) {
             const r = aggregated[i];
             sampled.push({
                 date: new Date(r.date).toISOString().split('T')[0],
@@ -316,6 +316,7 @@ const HomePage = () => {
     const [sortBy, setSortBy] = useState<'status' | 'trainset' | 'wear'>('status');
     const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('compact');
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
+    const [sampleRate, setSampleRate] = useState<number>(3);
 
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -324,12 +325,10 @@ const HomePage = () => {
     const loadAllWheelTrends = async (coach: Coach) => {
         const newTrends: Record<string, any[]> = {};
         for (const wheel of coach.wheels) {
-            if (!wheelTrends[wheel.id]) {
-                const [trainId, coachId, wheelId] = wheel.id.split('-');
-                const trend = await fetchWheelTrend(trainId, coachId, wheelId);
-                newTrends[wheel.id] = trend;
-                setWheelTrends(prev => ({...prev, [wheel.id]: trend}));
-            }
+            const [trainId, coachId, wheelId] = wheel.id.split('-');
+            const trend = await fetchWheelTrend(trainId, coachId, wheelId, sampleRate);
+            newTrends[wheel.id] = trend;
+            setWheelTrends(prev => ({...prev, [wheel.id]: trend}));
         }
     };
 
@@ -354,10 +353,14 @@ const HomePage = () => {
     [selectedTrainData, selectedCoachId]);
 
     useEffect(() => {
+        setWheelTrends({}); // Clear trends when sample rate changes
+    }, [sampleRate]);
+
+    useEffect(() => {
         if (wheelViewMode === 'detail' && selectedCoachData) {
             loadAllWheelTrends(selectedCoachData);
         }
-    }, [wheelViewMode, selectedCoachData]);
+    }, [wheelViewMode, selectedCoachData, sampleRate]);
 
     const criticalIssues = useMemo(() => {
         if (!isClient) return [];
@@ -734,13 +737,30 @@ const HomePage = () => {
                                           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
                                           <p className="text-slate-400 dark:text-slate-500 text-sm">{wheelViewMode === 'compact' ? 'Select a wheel to view detailed wear analysis' : 'All wheel wear trends'}</p>
                                       </div>
-                                      <Tabs value={wheelViewMode} onValueChange={(value) => setWheelViewMode(value as 'compact' | 'detail')}>
-                                          <TabsList>
-                                              <TabsTrigger value="compact">Compact</TabsTrigger>
-                                              <TabsTrigger value="detail">Detail</TabsTrigger>
-                                          </TabsList>
-                                      </Tabs>
-                                  </div>
+                                       <Tabs value={wheelViewMode} onValueChange={(value) => setWheelViewMode(value as 'compact' | 'detail')}>
+                                           <TabsList>
+                                               <TabsTrigger value="compact">Compact</TabsTrigger>
+                                               <TabsTrigger value="detail">Detail</TabsTrigger>
+                                           </TabsList>
+                                       </Tabs>
+                                       <DropdownMenu>
+                                           <DropdownMenuTrigger asChild>
+                                               <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1">
+                                                   Sample Rate: {sampleRate}
+                                                   <ChevronDown className="w-3 h-3" />
+                                               </button>
+                                           </DropdownMenuTrigger>
+                                           <DropdownMenuContent>
+                                               <DropdownMenuRadioGroup value={sampleRate.toString()} onValueChange={(value) => setSampleRate(parseInt(value))}>
+                                                   <DropdownMenuRadioItem value="1">1 day</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="3">3 days</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="7">7 days</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="15">15 days</DropdownMenuRadioItem>
+                                                   <DropdownMenuRadioItem value="30">30 days</DropdownMenuRadioItem>
+                                               </DropdownMenuRadioGroup>
+                                           </DropdownMenuContent>
+                                       </DropdownMenu>
+                                   </div>
 
                                      <div className="flex gap-4 text-sm">
                                          <div className="flex items-center gap-2">
