@@ -703,22 +703,22 @@ const HomePage = () => {
                                      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
                                      <p className="text-slate-400 dark:text-slate-500 text-sm">{wheelViewMode === 'compact' ? 'Select a wheel to view detailed wear analysis' : 'All wheel wear trends'}</p>
                                  </div>
-                                 {wheelViewMode === 'compact' && (
-                                     <div className="flex gap-4 text-sm">
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
-                                             <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
-                                         </div>
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
-                                             <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
-                                         </div>
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
-                                             <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
-                                         </div>
-                                     </div>
-                                 )}
+                           
+                                    <div className="flex gap-4 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
+                                            <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
+                                            <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
+                                            <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
+                                        </div>
+                                    </div>
+                                 
                              </div>
 
                              {wheelViewMode === 'compact' ? (
