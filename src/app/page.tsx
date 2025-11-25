@@ -770,17 +770,18 @@ const HomePage = () => {
                                                 tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                 axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                             />
-                                            <Tooltip 
-                                                contentStyle={{ 
-                                                    borderRadius: 'var(--radius)', 
-                                                    border: '1px solid hsl(var(--border))',
-                                                    background: 'hsl(var(--card))',
-                                                    color: 'hsl(var(--card-foreground))',
-                                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                                }}
-                                                labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
-                                                cursor={{stroke: 'hsl(var(--accent))'}}
-                                            />
+                                             <Tooltip
+                                                 formatter={(value) => typeof value === 'number' ? value.toFixed(3) : value}
+                                                 contentStyle={{
+                                                     borderRadius: 'var(--radius)',
+                                                     border: '1px solid hsl(var(--border))',
+                                                     background: 'hsl(var(--card))',
+                                                     color: 'hsl(var(--card-foreground))',
+                                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                 }}
+                                                 labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
+                                                 cursor={{stroke: 'hsl(var(--accent))'}}
+                                             />
                                             
                                              <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
                                              <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
