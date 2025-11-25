@@ -49,6 +49,14 @@ interface Train {
     coaches: Coach[];
 }
 
+interface WheelTrendPoint {
+    date: string;
+    valMean: number | null;
+    valMin: number | null;
+    valMax: number | null;
+    actual: number | null;
+}
+
 type FilteredCoach = Coach & { trainId: string; trainStatus: 'healthy' | 'warning' | 'critical' };
 
 
@@ -186,7 +194,7 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
         aggregated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         // Sample every 3 days
-        const sampled = [];
+        const sampled: WheelTrendPoint[] = [];
         for (let i = 0; i < aggregated.length; i += 3) {
             const r = aggregated[i];
             sampled.push({
@@ -194,7 +202,7 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
                 valMean: parseFloat(r.mean),
                 valMin: parseFloat(r.min),
                 valMax: parseFloat(r.max),
-                isPrediction: false
+                actual: null
             });
         }
 
@@ -206,9 +214,44 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
                 valMean: parseFloat(latest.mean),
                 valMin: parseFloat(latest.min),
                 valMax: parseFloat(latest.max),
-                isPrediction: false
+                actual: null
             });
         }
+
+        // Fetch actual measurements
+        const actualResponse = await fetch(`/api/measurements?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}`);
+        const actualSegments: any[][] = await actualResponse.json();
+
+        // Flatten segments into a map date -> sh
+        const actualMap: { [key: string]: number } = {};
+        actualSegments.forEach(segment => {
+            segment.forEach(point => {
+                actualMap[point.date] = point.sh;
+            });
+        });
+
+        // Add actual to sampled data
+        sampled.forEach(point => {
+            if (actualMap[point.date]) {
+                point.actual = actualMap[point.date];
+            }
+        });
+
+        // Also add actual points that are not in sampled
+        Object.keys(actualMap).forEach(date => {
+            if (!sampled.find(p => p.date === date)) {
+                sampled.push({
+                    date,
+                    valMean: null,
+                    valMin: null,
+                    valMax: null,
+                    actual: actualMap[date]
+                });
+            }
+        });
+
+        // Sort by date again
+        sampled.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         return sampled;
     } catch (error) {
@@ -796,33 +839,46 @@ const HomePage = () => {
                                                               />
                                                               <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="2 2" />
                                                               <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="2 2" />
-                                                              <Line
-                                                                  type="monotone"
-                                                                  dataKey="valMean"
-                                                                  stroke="#f97316"
-                                                                  strokeWidth={1}
-                                                                  dot={false}
-                                                                  name="Mean"
-                                                                  animationDuration={0}
-                                                              />
-                                                              <Line
-                                                                  type="monotone"
-                                                                  dataKey="valMin"
-                                                                  stroke="#3b82f6"
-                                                                  strokeWidth={1}
-                                                                  dot={false}
-                                                                  name="Min"
-                                                                  animationDuration={0}
-                                                              />
-                                                              <Line
-                                                                  type="monotone"
-                                                                  dataKey="valMax"
-                                                                  stroke="#ef4444"
-                                                                  strokeWidth={1}
-                                                                  dot={false}
-                                                                  name="Max"
-                                                                  animationDuration={0}
-                                                              />
+                                                               <Line
+                                                                   type="monotone"
+                                                                   dataKey="valMean"
+                                                                   stroke="#f97316"
+                                                                   strokeWidth={1}
+                                                                   dot={false}
+                                                                   name="Mean"
+                                                                   animationDuration={0}
+                                                                   connectNulls={true}
+                                                               />
+                                                               <Line
+                                                                   type="monotone"
+                                                                   dataKey="valMin"
+                                                                   stroke="#3b82f6"
+                                                                   strokeWidth={1}
+                                                                   dot={false}
+                                                                   name="Min"
+                                                                   animationDuration={0}
+                                                                   connectNulls={true}
+                                                               />
+                                                               <Line
+                                                                   type="monotone"
+                                                                   dataKey="valMax"
+                                                                   stroke="#ef4444"
+                                                                   strokeWidth={1}
+                                                                   dot={false}
+                                                                   name="Max"
+                                                                   animationDuration={0}
+                                                                   connectNulls={true}
+                                                               />
+                                                                <Line
+                                                                    type="monotone"
+                                                                    dataKey="actual"
+                                                                    stroke="#22c55e"
+                                                                    strokeWidth={2}
+                                                                    dot={{ fill: '#22c55e', r: 2 }}
+                                                                    name="Actual SH"
+                                                                    animationDuration={0}
+                                                                    connectNulls={false}
+                                                                />
                                                           </ComposedChart>
                                                       </ResponsiveContainer>
                                                  ) : (
@@ -861,14 +917,17 @@ const HomePage = () => {
                                     <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                         <Activity className="w-4 h-4 text-indigo-500" /> Wear Level Trend Analysis
                                     </h3>
-                                    <div className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-1 bg-rose-500"></div> Condemning Limit ({LIMIT_CRITICAL}mm)
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-1 bg-amber-500"></div> Warning Limit ({LIMIT_WARNING}mm)
-                                        </div>
-                                    </div>
+                                     <div className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
+                                         <div className="flex items-center gap-1">
+                                             <div className="w-3 h-1 bg-rose-500"></div> Condemning Limit ({LIMIT_CRITICAL}mm)
+                                         </div>
+                                         <div className="flex items-center gap-1">
+                                             <div className="w-3 h-1 bg-amber-500"></div> Warning Limit ({LIMIT_WARNING}mm)
+                                         </div>
+                                         <div className="flex items-center gap-1">
+                                             <div className="w-3 h-1 bg-green-500"></div> Actual SH
+                                         </div>
+                                     </div>
                                 </div>
 
                                 <div className="flex-1 w-full min-h-0 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-black/20 p-4">
@@ -893,55 +952,70 @@ const HomePage = () => {
                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                 />
-                                                 <Tooltip
-                                                     formatter={(value) => typeof value === 'number' ? value.toFixed(3) : value}
-                                                     contentStyle={{
-                                                         borderRadius: 'var(--radius)',
-                                                         border: '1px solid hsl(var(--border))',
-                                                         background: 'hsl(var(--card))',
-                                                         color: 'hsl(var(--card-foreground))',
-                                                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                                     }}
-                                                     labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
-                                                     cursor={{stroke: 'hsl(var(--accent))'}}
-                                                 />
+                                                  <Tooltip
+                                                      formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
+                                                      contentStyle={{
+                                                          borderRadius: 'var(--radius)',
+                                                          border: '1px solid hsl(var(--border))',
+                                                          background: 'hsl(var(--card))',
+                                                          color: 'hsl(var(--card-foreground))',
+                                                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                      }}
+                                                      labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
+                                                      cursor={{stroke: 'hsl(var(--accent))'}}
+                                                  />
 
                                                  <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
                                                  <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
                                                  <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
 
                                                    {/* Mean line */}
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="valMean"
+                                                        stroke="#f97316" // orange
+                                                        strokeWidth={2}
+                                                        dot={false}
+                                                        name="Mean"
+                                                        animationDuration={0}
+                                                        connectNulls={true}
+                                                    />
+
+                                                   {/* Min line */}
                                                    <Line
                                                        type="monotone"
-                                                       dataKey="valMean"
-                                                       stroke="#f97316" // orange
+                                                       dataKey="valMin"
+                                                       stroke="#3b82f6" // blue
                                                        strokeWidth={2}
                                                        dot={false}
-                                                       name="Mean"
-                                                       animationDuration={0}
+                                                       name="Min"
+                                                        animationDuration={0}
+                                                        connectNulls={true}
                                                    />
 
-                                                  {/* Min line */}
-                                                  <Line
-                                                      type="monotone"
-                                                      dataKey="valMin"
-                                                      stroke="#3b82f6" // blue
-                                                      strokeWidth={2}
-                                                      dot={false}
-                                                      name="Min"
-                                                       animationDuration={0}
-                                                  />
+                                                   {/* Max line */}
+                                                   <Line
+                                                       type="monotone"
+                                                       dataKey="valMax"
+                                                       stroke="#ef4444" // red
+                                                       strokeWidth={2}
+                                                       dot={false}
+                                                       name="Max"
+                                                        animationDuration={0}
+                                                        connectNulls={true}
+                                                   />
 
-                                                  {/* Max line */}
-                                                  <Line
-                                                      type="monotone"
-                                                      dataKey="valMax"
-                                                      stroke="#ef4444" // red
-                                                      strokeWidth={2}
-                                                      dot={false}
-                                                      name="Max"
+                                                   {/* Actual line */}
+                                                   <Line
+                                                       type="monotone"
+                                                       dataKey="actual"
+                                                       stroke="#22c55e" // green
+                                                       strokeWidth={2}
+                                                       dot={{ fill: '#22c55e', r: 2 }}
+                                                       name="Actual SH"
                                                        animationDuration={0}
-                                                  />
+                                                       connectNulls={false}
+                                                   />
 
 
                                             </ComposedChart>
