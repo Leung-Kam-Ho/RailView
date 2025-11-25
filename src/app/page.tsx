@@ -219,6 +219,8 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
     }
 };
 
+
+
 // --- COMPONENTS ---
 
 const StatusIndicator = ({ status, size = 'md' }: { status: 'healthy' | 'warning' | 'critical', size?: 'sm' | 'md' | 'lg' }) => {
@@ -271,9 +273,24 @@ const HomePage = () => {
     const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
     const [coachTypeFilter, setCoachTypeFilter] = useState<'all' | 'D' | 'P' | 'M' | 'F'>('all');
     const [sortBy, setSortBy] = useState<'status' | 'trainset' | 'coachId' | 'wear'>('status');
+    const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('compact');
+    const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
 
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Load trends for all wheels in a coach one by one
+    const loadAllWheelTrends = async (coach: Coach) => {
+        const newTrends: Record<string, any[]> = {};
+        for (const wheel of coach.wheels) {
+            if (!wheelTrends[wheel.id]) {
+                const [trainId, coachId, wheelId] = wheel.id.split('-');
+                const trend = await fetchWheelTrend(trainId, coachId, wheelId);
+                newTrends[wheel.id] = trend;
+                setWheelTrends(prev => ({...prev, [wheel.id]: trend}));
+            }
+        }
+    };
 
     const loadData = async () => {
         setIsLoading(true);
@@ -287,13 +304,19 @@ const HomePage = () => {
         loadData();
     }, []);
 
-    const selectedTrainData = useMemo(() => 
-        fleetData.find(t => t.id === selectedTrainId), 
+    const selectedTrainData = useMemo(() =>
+        fleetData.find(t => t.id === selectedTrainId),
     [fleetData, selectedTrainId]);
 
-    const selectedCoachData = useMemo(() => 
+    const selectedCoachData = useMemo(() =>
         selectedTrainData?.coaches.find(c => c.id === selectedCoachId),
     [selectedTrainData, selectedCoachId]);
+
+    useEffect(() => {
+        if (wheelViewMode === 'detail' && selectedCoachData) {
+            loadAllWheelTrends(selectedCoachData);
+        }
+    }, [wheelViewMode, selectedCoachData]);
 
     const criticalIssues = useMemo(() => {
         if (!isClient) return [];
@@ -393,10 +416,10 @@ const HomePage = () => {
     };
 
     const handleWheelClick = async (wheel: any) => {
-        if (wheel.trend.length === 0) {
+        if (!wheelTrends[wheel.id]) {
             const [trainId, coachId, wheelId] = wheel.id.split('-');
             const trend = await fetchWheelTrend(trainId, coachId, wheelId);
-            wheel.trend = trend;
+            setWheelTrends(prev => ({...prev, [wheel.id]: trend}));
         }
         setSelectedWheel(wheel);
     };
@@ -666,51 +689,155 @@ const HomePage = () => {
                             </div>
                         </section>
 
-                        <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 min-h-[400px]">
-                            <div className="flex justify-between items-center mb-8">
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
-                                    <p className="text-slate-400 dark:text-slate-500 text-sm">Select a wheel to view detailed wear analysis</p>
-                                </div>
-                                <div className="flex gap-4 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
-                                        <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
-                                        <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
-                                        <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
-                                    </div>
-                                </div>
-                            </div>
+                         <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 min-h-[400px]">
+                             <div className="flex justify-center mb-6">
+                                 <Tabs value={wheelViewMode} onValueChange={(value) => setWheelViewMode(value as 'compact' | 'detail')}>
+                                     <TabsList>
+                                         <TabsTrigger value="compact">Compact</TabsTrigger>
+                                         <TabsTrigger value="detail">Detail</TabsTrigger>
+                                     </TabsList>
+                                 </Tabs>
+                             </div>
+                             <div className="flex justify-between items-center mb-8">
+                                 <div>
+                                     <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
+                                     <p className="text-slate-400 dark:text-slate-500 text-sm">{wheelViewMode === 'compact' ? 'Select a wheel to view detailed wear analysis' : 'All wheel wear trends'}</p>
+                                 </div>
+                                 {wheelViewMode === 'compact' && (
+                                     <div className="flex gap-4 text-sm">
+                                         <div className="flex items-center gap-2">
+                                             <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
+                                             <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
+                                         </div>
+                                         <div className="flex items-center gap-2">
+                                             <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
+                                             <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
+                                         </div>
+                                         <div className="flex items-center gap-2">
+                                             <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
+                                             <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
+                                         </div>
+                                     </div>
+                                 )}
+                             </div>
 
-                            <div className="relative max-w-4xl mx-auto">
-                                <div className="absolute top-1/2 left-0 w-full h-32 -translate-y-1/2 flex flex-col justify-between pointer-events-none">
-                                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                </div>
+                             {wheelViewMode === 'compact' ? (
+                                 <div className="relative max-w-4xl mx-auto">
+                                     <div className="absolute top-1/2 left-0 w-full h-32 -translate-y-1/2 flex flex-col justify-between pointer-events-none">
+                                         <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                         <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                     </div>
 
-                                <div className="grid grid-cols-4 gap-8 relative z-0">
-                                    {[0, 1, 2, 3].map(idx => {
-                                        const upWheel = wheelsUp.find(w => w.position === `${idx+1}U`);
-                                        const downWheel = wheelsDown.find(w => w.position === `${idx+1}D`);
+                                     <div className="grid grid-cols-4 gap-8 relative z-0">
+                                         {[0, 1, 2, 3].map(idx => {
+                                             const upWheel = wheelsUp.find(w => w.position === `${idx+1}U`);
+                                             const downWheel = wheelsDown.find(w => w.position === `${idx+1}D`);
 
-                                        return (
-                                            <div key={idx} className="flex flex-col gap-24 items-center">
-                                                {upWheel && <WheelButton wheel={upWheel} onClick={() => handleWheelClick(upWheel)} />}
-                                                {downWheel && <WheelButton wheel={downWheel} onClick={() => handleWheelClick(downWheel)} />}
-                                            </div>
-                                        )
-                                    })}
-                                </div>
+                                             return (
+                                                 <div key={idx} className="flex flex-col gap-24 items-center">
+                                                     {upWheel && <WheelButton wheel={upWheel} onClick={() => handleWheelClick(upWheel)} />}
+                                                     {downWheel && <WheelButton wheel={downWheel} onClick={() => handleWheelClick(downWheel)} />}
+                                                 </div>
+                                             )
+                                         })}
+                                     </div>
 
-                                <div className="absolute -left-12 top-4 text-xs font-bold text-slate-400 dark:text-slate-500">UP SIDE</div>
-                                <div className="absolute -left-16 bottom-4 text-xs font-bold text-slate-400 dark:text-slate-500">DOWN SIDE</div>
-                            </div>
+                                     <div className="absolute -left-12 top-4 text-xs font-bold text-slate-400 dark:text-slate-500">UP SIDE</div>
+                                     <div className="absolute -left-16 bottom-4 text-xs font-bold text-slate-400 dark:text-slate-500">DOWN SIDE</div>
+                                 </div>
+                             ) : (
+                                 <div className="grid grid-cols-4 gap-4">
+                                     {selectedCoachData?.wheels.sort((a, b) => {
+                                         const aIsU = a.position.includes('U');
+                                         const bIsU = b.position.includes('U');
+                                         if (aIsU && !bIsU) return -1;
+                                         if (!aIsU && bIsU) return 1;
+                                         const aNum = parseInt(a.position);
+                                         const bNum = parseInt(b.position);
+                                         return aNum - bNum;
+                                     }).map((wheel) => (
+                                         <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                             <div className="flex items-center justify-center gap-2 mb-2">
+                                                 <div className="text-sm font-bold">{wheel.position}</div>
+                                                 <StatusIndicator status={wheel.status} size="sm" />
+                                                 {wheel.status !== 'healthy' && (
+                                                     <div className={`text-[10px] font-bold uppercase px-1 py-0.5 rounded ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                         {wheel.status}
+                                                     </div>
+                                                 )}
+                                             </div>
+                                             <div className="h-48">
+                                                 {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
+                                                     <ResponsiveContainer width="100%" height="100%">
+                                                         <ComposedChart data={wheelTrends[wheel.id]}>
+                                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                                             <XAxis
+                                                                 dataKey="date"
+                                                                 tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                 tickFormatter={(val) => {
+                                                                     const d = new Date(val);
+                                                                     return `${d.getDate()}`;
+                                                                 }}
+                                                                 tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                 axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                             />
+                                                             <YAxis
+                                                                 domain={[30, 36]}
+                                                                 tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                 tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                 axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                             />
+                                                             <Tooltip
+                                                                 formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
+                                                                 contentStyle={{
+                                                                     borderRadius: 'var(--radius)',
+                                                                     border: '1px solid hsl(var(--border))',
+                                                                     background: 'hsl(var(--card))',
+                                                                     color: 'hsl(var(--card-foreground))',
+                                                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                                 }}
+                                                                 labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
+                                                                 cursor={{stroke: 'hsl(var(--accent))'}}
+                                                             />
+                                                             <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="2 2" />
+                                                             <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="2 2" />
+                                                             <Line
+                                                                 type="monotone"
+                                                                 dataKey="valMean"
+                                                                 stroke="#f97316"
+                                                                 strokeWidth={1}
+                                                                 dot={false}
+                                                                 name="Mean"
+                                                                 animationDuration={0}
+                                                             />
+                                                             <Line
+                                                                 type="monotone"
+                                                                 dataKey="valMin"
+                                                                 stroke="#3b82f6"
+                                                                 strokeWidth={1}
+                                                                 dot={false}
+                                                                 name="Min"
+                                                                 animationDuration={0}
+                                                             />
+                                                             <Line
+                                                                 type="monotone"
+                                                                 dataKey="valMax"
+                                                                 stroke="#ef4444"
+                                                                 strokeWidth={1}
+                                                                 dot={false}
+                                                                 name="Max"
+                                                                 animationDuration={0}
+                                                             />
+                                                         </ComposedChart>
+                                                     </ResponsiveContainer>
+                                                 ) : (
+                                                     <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400 text-xs">Loading...</div>
+                                                 )}
+                                             </div>
+                                         </div>
+                                     ))}
+                                 </div>
+                             )}
                         </section>
                     </main>
                 </div>
@@ -750,79 +877,83 @@ const HomePage = () => {
                                 </div>
 
                                 <div className="flex-1 w-full min-h-0 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-black/20 p-4">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <ComposedChart data={selectedWheel.trend} animationDuration={0}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                            <XAxis 
-                                                dataKey="date" 
-                                                tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}} 
-                                                tickFormatter={(val) => {
-                                                    const d = new Date(val);
-                                                    return `${d.getDate()}/${d.getMonth()+1}`;
-                                                }}
-                                                tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                            />
-                                            <YAxis 
-                                                domain={[30, 36]} 
-                                                tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}} 
-                                                label={{ value: 'Wear Depth (mm)', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }} 
-                                                tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                            />
-                                             <Tooltip
-                                                 formatter={(value) => typeof value === 'number' ? value.toFixed(3) : value}
-                                                 contentStyle={{
-                                                     borderRadius: 'var(--radius)',
-                                                     border: '1px solid hsl(var(--border))',
-                                                     background: 'hsl(var(--card))',
-                                                     color: 'hsl(var(--card-foreground))',
-                                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                                 }}
-                                                 labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
-                                                 cursor={{stroke: 'hsl(var(--accent))'}}
-                                             />
-                                            
-                                             <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
-                                             <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
-                                             <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
+                                    {(wheelTrends[selectedWheel.id] && wheelTrends[selectedWheel.id].length > 0) ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <ComposedChart data={wheelTrends[selectedWheel.id]}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
+                                                    tickFormatter={(val) => {
+                                                        const d = new Date(val);
+                                                        return `${d.getDate()}/${d.getMonth()+1}`;
+                                                    }}
+                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                />
+                                                <YAxis
+                                                    domain={[30, 36]}
+                                                    tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
+                                                    label={{ value: 'Wear Depth (mm)', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                />
+                                                 <Tooltip
+                                                     formatter={(value) => typeof value === 'number' ? value.toFixed(3) : value}
+                                                     contentStyle={{
+                                                         borderRadius: 'var(--radius)',
+                                                         border: '1px solid hsl(var(--border))',
+                                                         background: 'hsl(var(--card))',
+                                                         color: 'hsl(var(--card-foreground))',
+                                                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                     }}
+                                                     labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
+                                                     cursor={{stroke: 'hsl(var(--accent))'}}
+                                                 />
 
-                                               {/* Mean line */}
-                                               <Line
-                                                   type="monotone"
-                                                   dataKey="valMean"
-                                                   stroke="#f97316" // orange
-                                                   strokeWidth={2}
-                                                   dot={false}
-                                                   name="Mean"
-                                                   animationDuration={0}
-                                               />
+                                                 <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
+                                                 <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
+                                                 <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
 
-                                              {/* Min line */}
-                                              <Line
-                                                  type="monotone"
-                                                  dataKey="valMin"
-                                                  stroke="#3b82f6" // blue
-                                                  strokeWidth={2}
-                                                  dot={false}
-                                                  name="Min"
-                                                   animationDuration={0}
-                                              />
+                                                   {/* Mean line */}
+                                                   <Line
+                                                       type="monotone"
+                                                       dataKey="valMean"
+                                                       stroke="#f97316" // orange
+                                                       strokeWidth={2}
+                                                       dot={false}
+                                                       name="Mean"
+                                                       animationDuration={0}
+                                                   />
 
-                                              {/* Max line */}
-                                              <Line
-                                                  type="monotone"
-                                                  dataKey="valMax"
-                                                  stroke="#ef4444" // red
-                                                  strokeWidth={2}
-                                                  dot={false}
-                                                  name="Max"
-                                                   animationDuration={0}
-                                              />
-                                            
+                                                  {/* Min line */}
+                                                  <Line
+                                                      type="monotone"
+                                                      dataKey="valMin"
+                                                      stroke="#3b82f6" // blue
+                                                      strokeWidth={2}
+                                                      dot={false}
+                                                      name="Min"
+                                                       animationDuration={0}
+                                                  />
 
-                                        </ComposedChart>
-                                    </ResponsiveContainer>
+                                                  {/* Max line */}
+                                                  <Line
+                                                      type="monotone"
+                                                      dataKey="valMax"
+                                                      stroke="#ef4444" // red
+                                                      strokeWidth={2}
+                                                      dot={false}
+                                                      name="Max"
+                                                       animationDuration={0}
+                                                  />
+
+
+                                            </ComposedChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">Loading trend data...</div>
+                                    )}
                                 </div>
                                 
                                 <div className="mt-4 bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-lg border border-indigo-100 dark:border-indigo-900 flex gap-4 items-start">
