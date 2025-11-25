@@ -689,37 +689,37 @@ const HomePage = () => {
                             </div>
                         </section>
 
-                         <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 min-h-[400px]">
-                             <div className="flex justify-center mb-6">
-                                 <Tabs value={wheelViewMode} onValueChange={(value) => setWheelViewMode(value as 'compact' | 'detail')}>
-                                     <TabsList>
-                                         <TabsTrigger value="compact">Compact</TabsTrigger>
-                                         <TabsTrigger value="detail">Detail</TabsTrigger>
-                                     </TabsList>
-                                 </Tabs>
-                             </div>
-                             <div className="flex justify-between items-center mb-8">
-                                 <div>
-                                     <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
-                                     <p className="text-slate-400 dark:text-slate-500 text-sm">{wheelViewMode === 'compact' ? 'Select a wheel to view detailed wear analysis' : 'All wheel wear trends'}</p>
-                                 </div>
-                           
-                                    <div className="flex gap-4 text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
-                                            <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
-                                            <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
-                                            <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
-                                        </div>
-                                    </div>
-                                 
-                             </div>
+                          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 min-h-[400px]">
+                              <div className="flex justify-between items-start mb-8">
+                                  <div className="flex items-center gap-4">
+                                      <div>
+                                          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
+                                          <p className="text-slate-400 dark:text-slate-500 text-sm">{wheelViewMode === 'compact' ? 'Select a wheel to view detailed wear analysis' : 'All wheel wear trends'}</p>
+                                      </div>
+                                      <Tabs value={wheelViewMode} onValueChange={(value) => setWheelViewMode(value as 'compact' | 'detail')}>
+                                          <TabsList>
+                                              <TabsTrigger value="compact">Compact</TabsTrigger>
+                                              <TabsTrigger value="detail">Detail</TabsTrigger>
+                                          </TabsList>
+                                      </Tabs>
+                                  </div>
+
+                                     <div className="flex gap-4 text-sm">
+                                         <div className="flex items-center gap-2">
+                                             <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
+                                             <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
+                                         </div>
+                                         <div className="flex items-center gap-2">
+                                             <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
+                                             <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
+                                         </div>
+                                         <div className="flex items-center gap-2">
+                                             <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
+                                             <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
+                                         </div>
+                                     </div>
+
+                              </div>
 
                              {wheelViewMode === 'compact' ? (
                                  <div className="relative max-w-4xl mx-auto">
@@ -756,7 +756,7 @@ const HomePage = () => {
                                          const bNum = parseInt(b.position);
                                          return aNum - bNum;
                                      }).map((wheel) => (
-                                         <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                           <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-4 pr-4 pb-4 rounded-lg border border-slate-200 dark:border-slate-700">
                                              <div className="flex items-center justify-center gap-2 mb-2">
                                                  <div className="text-sm font-bold">{wheel.position}</div>
                                                  <StatusIndicator status={wheel.status} size="sm" />
@@ -766,70 +766,70 @@ const HomePage = () => {
                                                      </div>
                                                  )}
                                              </div>
-                                             <div className="h-48">
-                                                 {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
-                                                     <ResponsiveContainer width="100%" height="100%">
-                                                         <ComposedChart data={wheelTrends[wheel.id]}>
-                                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                                             <XAxis
-                                                                 dataKey="date"
-                                                                 tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                                 tickFormatter={(val) => {
-                                                                     const d = new Date(val);
-                                                                     return `${d.getDate()}`;
-                                                                 }}
-                                                                 tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                 axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                             />
-                                                             <YAxis
-                                                                 domain={[30, 36]}
-                                                                 tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                                 tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                 axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                             />
-                                                             <Tooltip
-                                                                 formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
-                                                                 contentStyle={{
-                                                                     borderRadius: 'var(--radius)',
-                                                                     border: '1px solid hsl(var(--border))',
-                                                                     background: 'hsl(var(--card))',
-                                                                     color: 'hsl(var(--card-foreground))',
-                                                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                                                 }}
-                                                                 labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
-                                                                 cursor={{stroke: 'hsl(var(--accent))'}}
-                                                             />
-                                                             <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="2 2" />
-                                                             <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="2 2" />
-                                                             <Line
-                                                                 type="monotone"
-                                                                 dataKey="valMean"
-                                                                 stroke="#f97316"
-                                                                 strokeWidth={1}
-                                                                 dot={false}
-                                                                 name="Mean"
-                                                                 animationDuration={0}
-                                                             />
-                                                             <Line
-                                                                 type="monotone"
-                                                                 dataKey="valMin"
-                                                                 stroke="#3b82f6"
-                                                                 strokeWidth={1}
-                                                                 dot={false}
-                                                                 name="Min"
-                                                                 animationDuration={0}
-                                                             />
-                                                             <Line
-                                                                 type="monotone"
-                                                                 dataKey="valMax"
-                                                                 stroke="#ef4444"
-                                                                 strokeWidth={1}
-                                                                 dot={false}
-                                                                 name="Max"
-                                                                 animationDuration={0}
-                                                             />
-                                                         </ComposedChart>
-                                                     </ResponsiveContainer>
+                                              <div className="h-48">
+                                                  {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
+                                                      <ResponsiveContainer width="100%" height="100%">
+                                                            <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                                              <XAxis
+                                                                  dataKey="date"
+                                                                  tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                  tickFormatter={(val) => {
+                                                                      const d = new Date(val);
+                                                                      return `${d.getDate()}`;
+                                                                  }}
+                                                                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                              />
+                                                              <YAxis
+                                                                  domain={[30, 36]}
+                                                                  tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                              />
+                                                              <Tooltip
+                                                                  formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
+                                                                  contentStyle={{
+                                                                      borderRadius: 'var(--radius)',
+                                                                      border: '1px solid hsl(var(--border))',
+                                                                      background: 'hsl(var(--card))',
+                                                                      color: 'hsl(var(--card-foreground))',
+                                                                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                                  }}
+                                                                  labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
+                                                                  cursor={{stroke: 'hsl(var(--accent))'}}
+                                                              />
+                                                              <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="2 2" />
+                                                              <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="2 2" />
+                                                              <Line
+                                                                  type="monotone"
+                                                                  dataKey="valMean"
+                                                                  stroke="#f97316"
+                                                                  strokeWidth={1}
+                                                                  dot={false}
+                                                                  name="Mean"
+                                                                  animationDuration={0}
+                                                              />
+                                                              <Line
+                                                                  type="monotone"
+                                                                  dataKey="valMin"
+                                                                  stroke="#3b82f6"
+                                                                  strokeWidth={1}
+                                                                  dot={false}
+                                                                  name="Min"
+                                                                  animationDuration={0}
+                                                              />
+                                                              <Line
+                                                                  type="monotone"
+                                                                  dataKey="valMax"
+                                                                  stroke="#ef4444"
+                                                                  strokeWidth={1}
+                                                                  dot={false}
+                                                                  name="Max"
+                                                                  animationDuration={0}
+                                                              />
+                                                          </ComposedChart>
+                                                      </ResponsiveContainer>
                                                  ) : (
                                                      <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400 text-xs">Loading...</div>
                                                  )}
