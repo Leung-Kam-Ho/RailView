@@ -29,7 +29,7 @@ interface Wheel {
     position: string;
     status: 'healthy' | 'warning' | 'critical';
     currentVal: string;
-    maxVal: string;
+    meanVal: string;
     trend: any[];
 }
 
@@ -101,26 +101,24 @@ const fetchFleet = async () => {
                      let status: 'healthy' | 'warning' | 'critical' = 'healthy';
                      if (meanVal >= LIMIT_CRITICAL) {
                          status = 'critical';
-                     } else if (meanVal > LIMIT_WARNING && maxVal >= LIMIT_CRITICAL) {
-                         status = 'critical';
                      } else if (meanVal >= LIMIT_WARNING) {
                          status = 'warning';
                      }
 
-                     wheels.push({
-                         id: `${trainId}-${coachId}-${wheelId}`,
-                         position: wheelId,
-                         status: status,
-                         currentVal: currentVal,
-                         maxVal: record.max.toFixed(2),
-                         trend: [] // Will load on demand
-                     });
+                      wheels.push({
+                          id: `${trainId}-${coachId}-${wheelId}`,
+                          position: wheelId,
+                          status: status,
+                          currentVal: currentVal,
+                          meanVal: record.mean.toFixed(2),
+                          trend: [] // Will load on demand
+                      });
 
                     if (status === 'critical') coachStatus = 'critical';
                     else if (status === 'warning' && coachStatus !== 'critical') coachStatus = 'warning';
                 }
 
-                const maxWear = Math.max(...wheels.map(w => parseFloat(w.maxVal)));
+                const maxWear = Math.max(...wheels.map(w => parseFloat(w.meanVal)));
                 const index = coachIds.indexOf(coachId);
                  coaches.push({
                      id: coachId,
@@ -272,7 +270,7 @@ const HomePage = () => {
     const [viewMode, setViewMode] = useState<'trainset' | 'coach'>('coach');
     const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
     const [coachTypeFilter, setCoachTypeFilter] = useState<'all' | 'D' | 'P' | 'M' | 'F'>('all');
-    const [sortBy, setSortBy] = useState<'status' | 'trainset' | 'coachId' | 'wear'>('status');
+    const [sortBy, setSortBy] = useState<'status' | 'trainset' | 'wear'>('status');
     const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('compact');
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
 
@@ -330,7 +328,7 @@ const HomePage = () => {
                 });
             });
         });
-        return issues.sort((a, b) => parseFloat(b.wheel.maxVal) - parseFloat(a.wheel.maxVal));
+        return issues.sort((a, b) => parseFloat(b.wheel.meanVal) - parseFloat(a.wheel.meanVal));
     }, [fleetData, isClient]);
 
     const filteredItems = useMemo(() => {
@@ -359,8 +357,6 @@ const HomePage = () => {
                     return b.maxWear - a.maxWear;
                 });
             } else if (sortBy === 'trainset') {
-                coaches.sort((a, b) => a.trainId.localeCompare(b.trainId) || a.id.localeCompare(b.id));
-            } else if (sortBy === 'coachId') {
                 coaches.sort((a, b) => {
                     const getSortKey = (id: string) => {
                         const match = id.match(/([DPMF])(\d+)/);
@@ -506,20 +502,19 @@ const HomePage = () => {
                                            <button onClick={() => setCoachTypeFilter('F')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>F</button>
                                        </div>
                                        <DropdownMenu>
-                                           <DropdownMenuTrigger asChild>
-                                               <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1 ml-2">
-                                                   Sort By: {sortBy === 'status' ? 'Status' : sortBy === 'trainset' ? 'Trainset' : sortBy === 'coachId' ? 'Coach ID' : 'Wear (Highest First)'}
-                                                   <ChevronDown className="w-3 h-3" />
-                                               </button>
-                                           </DropdownMenuTrigger>
-                                           <DropdownMenuContent>
-                                               <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as 'status' | 'trainset' | 'coachId' | 'wear')}>
-                                                   <DropdownMenuRadioItem value="status">Status</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="trainset">Trainset</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="coachId">Coach ID</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="wear">Wear (Highest First)</DropdownMenuRadioItem>
-                                               </DropdownMenuRadioGroup>
-                                           </DropdownMenuContent>
+                                            <DropdownMenuTrigger asChild>
+                                                <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1 ml-2">
+                                                    Sort By: {sortBy === 'status' ? 'Status' : sortBy === 'trainset' ? 'Trainset' : 'Wear (Highest First)'}
+                                                    <ChevronDown className="w-3 h-3" />
+                                                </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuRadioGroup value={sortBy} onValueChange={(value) => setSortBy(value as 'status' | 'trainset' | 'wear')}>
+                                                    <DropdownMenuRadioItem value="status">Status</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="trainset">Trainset</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="wear">Wear (Highest First)</DropdownMenuRadioItem>
+                                                </DropdownMenuRadioGroup>
+                                            </DropdownMenuContent>
                                        </DropdownMenu>
                                    </>
                                )}
@@ -599,7 +594,7 @@ const HomePage = () => {
                                 <div className="flex justify-between items-center">
                                      <div>
                                          <div className="font-semibold text-slate-700 dark:text-slate-300">{issue.train} / {issue.coach} - {issue.wheel.position}</div>
-                                         <div className="text-lg font-mono font-bold text-slate-800 dark:text-slate-200">{issue.wheel.maxVal}mm <span className="text-xs text-slate-500">Max Wear</span></div>
+                                          <div className="text-lg font-mono font-bold text-slate-800 dark:text-slate-200">{issue.wheel.meanVal}mm <span className="text-xs text-slate-500">Mean Wear</span></div>
                                      </div>
                                      <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500" />
                                  </div>
