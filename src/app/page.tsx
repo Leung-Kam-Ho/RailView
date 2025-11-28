@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
-    ResponsiveContainer, ReferenceLine, Area, ComposedChart 
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    ResponsiveContainer, ReferenceLine, Area, ComposedChart, BarChart, Bar, Cell
 } from 'recharts';
 import {
     AlertTriangle, Train, Search, ChevronRight, Activity,
@@ -54,6 +54,7 @@ interface WheelTrendPoint {
     valMean: number | null;
     valMin: number | null;
     valMax: number | null;
+    valStd: number | null;
     actual: number | null;
 }
 
@@ -202,6 +203,7 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
                 valMean: parseFloat(r.mean),
                 valMin: parseFloat(r.min),
                 valMax: parseFloat(r.max),
+                valStd: parseFloat(r.std),
                 actual: null
             });
         }
@@ -214,6 +216,7 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
                 valMean: parseFloat(latest.mean),
                 valMin: parseFloat(latest.min),
                 valMax: parseFloat(latest.max),
+                valStd: parseFloat(latest.std),
                 actual: null
             });
         }
@@ -245,6 +248,7 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
                     valMean: null,
                     valMin: null,
                     valMax: null,
+                    valStd: null,
                     actual: actualMap[date]
                 });
             }
@@ -317,6 +321,12 @@ const HomePage = () => {
     const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('compact');
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
     const [sampleRate, setSampleRate] = useState<number>(3);
+
+    const getStdColor = (val: number | null) => {
+        if (!val || val <= 0.5) return '#6b7280';
+        if (val > 0.8) return '#ef4444';
+        return '#f59e0b';
+    };
 
     const [isClient, setIsClient] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -730,7 +740,7 @@ const HomePage = () => {
                             </div>
                         </section>
 
-                          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 min-h-[400px]">
+                          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex-1 max-h-[75vh]">
                               <div className="flex justify-between items-start mb-8">
                                   <div className="flex items-center gap-4">
                                       <div>
@@ -814,7 +824,7 @@ const HomePage = () => {
                                          const bNum = parseInt(b.position);
                                          return aNum - bNum;
                                      }).map((wheel) => (
-                                           <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-4 pr-4 pb-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                            <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-4 pr-1 pb-4 rounded-lg border border-slate-200 dark:border-slate-700">
                                              <div className="flex items-center justify-center gap-2 mb-2">
                                                  <div className="text-sm font-bold">{wheel.position}</div>
                                                  <StatusIndicator status={wheel.status} size="sm" />
@@ -824,10 +834,10 @@ const HomePage = () => {
                                                      </div>
                                                  )}
                                              </div>
-                                              <div className="h-48">
-                                                  {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
-                                                      <ResponsiveContainer width="100%" height="100%">
-                                                            <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                               <div className="h-48 flex items-center justify-center">
+                                                   {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
+                                                       <ResponsiveContainer width="95%" height="95%">
+                                                             <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                                                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                                                               <XAxis
                                                                   dataKey="date"
@@ -839,12 +849,22 @@ const HomePage = () => {
                                                                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                                   axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                               />
-                                                              <YAxis
-                                                                  domain={[30, 36]}
-                                                                  tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                              />
+                                                               <YAxis
+                                                                   domain={[30, 36]}
+                                                                   tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                   axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                   width={15}
+                                                               />
+                                                               <YAxis
+                                                                   yAxisId="std"
+                                                                   orientation="right"
+                                                                   domain={[0, 2]}
+                                                                   tick={{fontSize: 8, fill: 'hsl(var(--muted-foreground))'}}
+                                                                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                   axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                   width={30}
+                                                               />
                                                               <Tooltip
                                                                   formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
                                                                   contentStyle={{
@@ -889,17 +909,26 @@ const HomePage = () => {
                                                                    animationDuration={0}
                                                                    connectNulls={true}
                                                                />
-                                                                <Line
-                                                                    type="monotone"
-                                                                    dataKey="actual"
-                                                                    stroke="#22c55e"
-                                                                    strokeWidth={2}
-                                                                    dot={{ fill: '#22c55e', r: 2 }}
-                                                                    name="Actual SH"
-                                                                    animationDuration={0}
-                                                                    connectNulls={false}
-                                                                />
-                                                          </ComposedChart>
+                                                                 <Line
+                                                                     type="monotone"
+                                                                     dataKey="actual"
+                                                                     stroke="#22c55e"
+                                                                     strokeWidth={2}
+                                                                     dot={{ fill: '#22c55e', r: 2 }}
+                                                                     name="Actual SH"
+                                                                     animationDuration={0}
+                                                                     connectNulls={false}
+                                                                 />
+                                                                 <Bar
+                                                                     dataKey="valStd"
+                                                                     yAxisId="std"
+                                                                     name="Std Dev"
+                                                                 >
+                                                                     {wheelTrends[wheel.id].map((entry, index) => (
+                                                                         <Cell key={`cell-${index}`} fill={getStdColor(entry.valStd)} />
+                                                                     ))}
+                                                                 </Bar>
+                                                           </ComposedChart>
                                                       </ResponsiveContainer>
                                                  ) : (
                                                      <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400 text-xs">Loading...</div>
@@ -914,8 +943,8 @@ const HomePage = () => {
                 </div>
 
                 {selectedWheel && (
-                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden animate-in fade-in-95 duration-300">
+                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-2">
+                         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[90vw] h-[85vh] flex flex-col overflow-hidden animate-in fade-in-95 duration-300">
                             
                             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-900/50">
                                 <div>
@@ -950,100 +979,119 @@ const HomePage = () => {
                                      </div>
                                 </div>
 
-                                <div className="flex-1 w-full min-h-0 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-black/20 p-4">
-                                    {(wheelTrends[selectedWheel.id] && wheelTrends[selectedWheel.id].length > 0) ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <ComposedChart data={wheelTrends[selectedWheel.id]}>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                                <XAxis
-                                                    dataKey="date"
-                                                    tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
-                                                    tickFormatter={(val) => {
-                                                        const d = new Date(val);
-                                                        return `${d.getDate()}/${d.getMonth()+1}`;
-                                                    }}
-                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                />
-                                                <YAxis
-                                                    domain={[30, 36]}
-                                                    tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
-                                                    label={{ value: 'Wear Depth (mm)', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                />
-                                                  <Tooltip
-                                                      formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
-                                                      contentStyle={{
-                                                          borderRadius: 'var(--radius)',
-                                                          border: '1px solid hsl(var(--border))',
-                                                          background: 'hsl(var(--card))',
-                                                          color: 'hsl(var(--card-foreground))',
-                                                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                                      }}
-                                                      labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
-                                                      cursor={{stroke: 'hsl(var(--accent))'}}
-                                                  />
+                                 <div className="flex-1 w-full min-h-0 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-black/20 p-4">
+                                     {(wheelTrends[selectedWheel.id] && wheelTrends[selectedWheel.id].length > 0) ? (
+                                         <ResponsiveContainer width="100%" height="100%">
+                                             <ComposedChart data={wheelTrends[selectedWheel.id]} margin={{ top: 5, right: 40, left: 5, bottom: 5 }}>
+                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                                 <XAxis
+                                                     dataKey="date"
+                                                     tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
+                                                     tickFormatter={(val) => {
+                                                         const d = new Date(val);
+                                                         return `${d.getDate()}/${d.getMonth()+1}`;
+                                                     }}
+                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                 />
+                                                 <YAxis
+                                                     domain={[30, 36]}
+                                                     tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
+                                                     label={{ value: 'Wear Depth (mm)', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                 />
+                                                 <YAxis
+                                                     yAxisId="std"
+                                                     orientation="right"
+                                                     domain={[0, 2]}
+                                                     tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                     label={{ value: 'Daily Std (mm)', angle: 90, position: 'insideRight', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                     width={15}
+                                                 />
+                                                   <Tooltip
+                                                       formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
+                                                       contentStyle={{
+                                                           borderRadius: 'var(--radius)',
+                                                           border: '1px solid hsl(var(--border))',
+                                                           background: 'hsl(var(--card))',
+                                                           color: 'hsl(var(--card-foreground))',
+                                                           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                       }}
+                                                       labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '0.5rem' }}
+                                                       cursor={{stroke: 'hsl(var(--accent))'}}
+                                                   />
 
-                                                 <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
-                                                 <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
-                                                 <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
+                                                  <ReferenceLine y={LIMIT_CRITICAL} stroke="#e11d48" strokeDasharray="4 4" label={{ position: 'right', value: 'Limit', fill: '#e11d48', fontSize: 10 }} />
+                                                  <ReferenceLine y={LIMIT_WARNING} stroke="#f59e0b" strokeDasharray="4 4" />
+                                                  <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#3b82f6" strokeDasharray="2 2" label={{ position: 'top', value: 'Today', fill: '#3b82f6', fontSize: 10 }} />
 
-                                                   {/* Mean line */}
+                                                    {/* Mean line */}
+                                                     <Line
+                                                         type="monotone"
+                                                         dataKey="valMean"
+                                                         stroke="#f97316" // orange
+                                                         strokeWidth={2}
+                                                         dot={false}
+                                                         name="Mean"
+                                                         animationDuration={0}
+                                                         connectNulls={true}
+                                                     />
+
+                                                    {/* Min line */}
                                                     <Line
                                                         type="monotone"
-                                                        dataKey="valMean"
-                                                        stroke="#f97316" // orange
+                                                        dataKey="valMin"
+                                                        stroke="#3b82f6" // blue
                                                         strokeWidth={2}
                                                         dot={false}
-                                                        name="Mean"
-                                                        animationDuration={0}
-                                                        connectNulls={true}
+                                                        name="Min"
+                                                         animationDuration={0}
+                                                         connectNulls={true}
                                                     />
 
-                                                   {/* Min line */}
-                                                   <Line
-                                                       type="monotone"
-                                                       dataKey="valMin"
-                                                       stroke="#3b82f6" // blue
-                                                       strokeWidth={2}
-                                                       dot={false}
-                                                       name="Min"
+                                                    {/* Max line */}
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="valMax"
+                                                        stroke="#ef4444" // red
+                                                        strokeWidth={2}
+                                                        dot={false}
+                                                        name="Max"
+                                                         animationDuration={0}
+                                                         connectNulls={true}
+                                                    />
+
+                                                    {/* Actual line */}
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="actual"
+                                                        stroke="#22c55e" // green
+                                                        strokeWidth={2}
+                                                        dot={{ fill: '#22c55e', r: 2 }}
+                                                        name="Actual SH"
                                                         animationDuration={0}
-                                                        connectNulls={true}
-                                                   />
+                                                        connectNulls={false}
+                                                    />
 
-                                                   {/* Max line */}
-                                                   <Line
-                                                       type="monotone"
-                                                       dataKey="valMax"
-                                                       stroke="#ef4444" // red
-                                                       strokeWidth={2}
-                                                       dot={false}
-                                                       name="Max"
-                                                        animationDuration={0}
-                                                        connectNulls={true}
-                                                   />
+                                                    <Bar
+                                                        dataKey="valStd"
+                                                        yAxisId="std"
+                                                        name="Std Dev"
+                                                    >
+                                                        {wheelTrends[selectedWheel.id].map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={getStdColor(entry.valStd)} />
+                                                        ))}
+                                                    </Bar>
 
-                                                   {/* Actual line */}
-                                                   <Line
-                                                       type="monotone"
-                                                       dataKey="actual"
-                                                       stroke="#22c55e" // green
-                                                       strokeWidth={2}
-                                                       dot={{ fill: '#22c55e', r: 2 }}
-                                                       name="Actual SH"
-                                                       animationDuration={0}
-                                                       connectNulls={false}
-                                                   />
-
-
-                                            </ComposedChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">Loading trend data...</div>
-                                    )}
-                                </div>
+                                             </ComposedChart>
+                                         </ResponsiveContainer>
+                                     ) : (
+                                         <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">Loading trend data...</div>
+                                     )}
+                                 </div>
                                 
                                 <div className="mt-4 bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-lg border border-indigo-100 dark:border-indigo-900 flex gap-4 items-start">
                                     <Info className="text-indigo-600 dark:text-indigo-400 w-5 h-5 mt-0.5" />
