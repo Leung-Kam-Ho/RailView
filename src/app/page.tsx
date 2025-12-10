@@ -17,6 +17,10 @@ import {
     DropdownMenuRadioItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 // --- CONSTANTS & LOGIC ---
 
@@ -63,9 +67,10 @@ type FilteredCoach = Coach & { trainId: string; trainStatus: 'healthy' | 'warnin
 
 
 // Fetch and build the Fleet Structure from MongoDB aggregated data
-const fetchFleet = async () => {
+const fetchFleet = async (date?: Date) => {
     try {
-        const response = await fetch('/api/predictions');
+        const fleetDateParam = date ? `?date=${date.toISOString().split('T')[0]}` : '';
+        const response = await fetch(`/api/predictions${fleetDateParam}`);
         const records: any[] = await response.json();
 
         // Group records by train, coach, wheel
@@ -186,9 +191,10 @@ const fetchFleet = async () => {
 };
 
 // Fetch trend data for a specific wheel
-const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string, sampleRate: number = 3) => {
+const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string, sampleRate: number = 3, date?: Date) => {
     try {
-        const response = await fetch(`/api/predictions?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}`);
+        const predictionDateParam = date ? `&date=${date.toISOString().split('T')[0]}` : '';
+        const response = await fetch(`/api/predictions?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}${predictionDateParam}`);
         const aggregated: any[] = await response.json();
 
         // Sort by date
@@ -222,7 +228,8 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
         }
 
         // Fetch actual measurements
-        const actualResponse = await fetch(`/api/measurements?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}`);
+        const measurementDateParam = date ? `&date=${date.toISOString().split('T')[0]}` : '';
+        const actualResponse = await fetch(`/api/measurements?train_id=${trainId}&coach_id=${coachId}&wheel_id=${wheelId}${measurementDateParam}`);
         const actualSegments: any[][] = await actualResponse.json();
 
         // Flatten segments into a map date -> sh
@@ -240,9 +247,10 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
             }
         });
 
-        // Also add actual points that are not in sampled
+        // Also add actual points that are not in sampled (but only up to selected date)
+        const cutoffDate = date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
         Object.keys(actualMap).forEach(date => {
-            if (!sampled.find(p => p.date === date)) {
+            if (!sampled.find(p => p.date === date) && date <= cutoffDate) {
                 sampled.push({
                     date,
                     valMean: null,
@@ -321,6 +329,7 @@ const HomePage = () => {
     const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('compact');
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
     const [sampleRate, setSampleRate] = useState<number>(3);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
     const getStdColor = (val: number | null) => {
         if (!val || val <= 0.5) return '#6b7280';
@@ -336,7 +345,7 @@ const HomePage = () => {
         const newTrends: Record<string, any[]> = {};
         for (const wheel of coach.wheels) {
             const [trainId, coachId, wheelId] = wheel.id.split('-');
-            const trend = await fetchWheelTrend(trainId, coachId, wheelId, sampleRate);
+            const trend = await fetchWheelTrend(trainId, coachId, wheelId, sampleRate, selectedDate);
             newTrends[wheel.id] = trend;
             setWheelTrends(prev => ({...prev, [wheel.id]: trend}));
         }
@@ -344,7 +353,7 @@ const HomePage = () => {
 
     const loadData = async () => {
         setIsLoading(true);
-        const data = await fetchFleet();
+        const data = await fetchFleet(selectedDate);
         setFleetData(data);
         setIsClient(true);
         setIsLoading(false);
@@ -353,6 +362,12 @@ const HomePage = () => {
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        if (isClient) {
+            loadData();
+        }
+    }, [selectedDate]);
 
     const selectedTrainData = useMemo(() =>
         fleetData.find(t => t.id === selectedTrainId),
@@ -470,7 +485,7 @@ const HomePage = () => {
     const handleWheelClick = async (wheel: any) => {
         if (!wheelTrends[wheel.id]) {
             const [trainId, coachId, wheelId] = wheel.id.split('-');
-            const trend = await fetchWheelTrend(trainId, coachId, wheelId);
+            const trend = await fetchWheelTrend(trainId, coachId, wheelId, 3, selectedDate);
             setWheelTrends(prev => ({...prev, [wheel.id]: trend}));
         }
         setSelectedWheel(wheel);
@@ -500,22 +515,55 @@ const HomePage = () => {
             <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans text-slate-800 dark:text-slate-200">
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                     <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-6 flex justify-between items-center">
-                        <div>
+                         <div>
                              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                  <Train className="text-indigo-600" /> {'RailView'}
                              </h1>
+                             {selectedDate && (
+                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                     Data as of: {format(selectedDate, 'PPP')}
+                                 </p>
+                             )}
                         </div>
                          <div className="flex items-center gap-6">
-                              <div className="relative">
-                                  <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
-                                  <input
-                                      type="text"
-                                      placeholder="Search TS01..."
-                                      className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
-                                      value={searchTerm}
-                                      onChange={(e) => setSearchTerm(e.target.value)}
-                                  />
-                              </div>
+                               <div className="relative">
+                                   <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
+                                   <input
+                                       type="text"
+                                       placeholder="Search TS01..."
+                                       className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
+                                       value={searchTerm}
+                                       onChange={(e) => setSearchTerm(e.target.value)}
+                                   />
+                               </div>
+                               
+                               <Popover>
+                                   <PopoverTrigger asChild>
+                                       <button
+                                           className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                       >
+                                           <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                           {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                                       </button>
+                                   </PopoverTrigger>
+                                   <PopoverContent className="w-auto p-0" align="start">
+                                       <Calendar
+                                           mode="single"
+                                           selected={selectedDate}
+                                           onSelect={(date) => {
+                                               setSelectedDate(date);
+                                           }}
+                                           initialFocus
+                                       />
+                                   </PopoverContent>
+                               </Popover>
+                               
+                               <button
+                                   onClick={() => setSelectedDate(new Date())}
+                                   className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                               >
+                                   Today
+                               </button>
                                 <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'trainset' | 'coach')}>
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="trainset">Trainset</TabsTrigger>
@@ -687,7 +735,35 @@ const HomePage = () => {
                             <ChevronRight className="w-4 h-4" />
                             <span className="font-bold text-slate-800 dark:text-slate-200 text-lg">{selectedTrainId}</span>
                         </div>
-                        <div className="ml-auto flex gap-3">
+                        <div className="ml-auto flex gap-3 items-center">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <button
+                                        className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                    >
+                                        <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                        {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <Calendar
+                                        mode="single"
+                                        selected={selectedDate}
+                                        onSelect={(date) => {
+                                            setSelectedDate(date);
+                                        }}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            
+                            <button
+                                onClick={() => setSelectedDate(new Date())}
+                                className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                            >
+                                Today
+                            </button>
+                            
                             <div className="text-right hidden md:block">
                                 <div className="text-xs text-slate-400 dark:text-slate-500">Last Inspection</div>
                                 <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Today, 08:00 AM</div>

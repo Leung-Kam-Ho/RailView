@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   const train_id = searchParams.get('train_id');
   const coach_id = searchParams.get('coach_id');
   const wheel_id = searchParams.get('wheel_id');
+  const date = searchParams.get('date');
 
   try {
     await client.connect();
@@ -22,8 +23,15 @@ export async function GET(request: NextRequest) {
 
     const measurements = await measurements_collection.find(query).sort({ Datetime: 1 }).toArray();
 
-    // Filter to only include data from 2024-AUG onwards
-    const filteredMeasurements = measurements.filter(m => new Date(m.Datetime) >= new Date('2024-08-01'));
+    // Filter to only include data from 2024-AUG onwards and up to selected date
+    let filteredMeasurements = measurements.filter(m => new Date(m.Datetime) >= new Date('2024-08-01'));
+    
+    // If date is specified, filter for that date or earlier
+    if (date) {
+      filteredMeasurements = filteredMeasurements.filter(m => 
+        new Date(m.Datetime).toISOString().split('T')[0] <= date
+      );
+    }
 
     // Process into segments split by >60 days gap
     const processed = [];

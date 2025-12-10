@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   const train_id = searchParams.get('train_id');
   const coach_id = searchParams.get('coach_id');
   const wheel_id = searchParams.get('wheel_id');
+  const date = searchParams.get('date');
 
   try {
     await client.connect();
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (wheel_id) {
       // For specific wheel, aggregate by date
-      const pipeline = [
+      let pipeline: any[] = [
         { $match: query },
         {
           $addFields: {
@@ -33,7 +34,19 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-        },
+        }
+      ];
+
+      // If date is specified, filter for that date or earlier
+      if (date) {
+        pipeline.push({
+          $match: {
+            dateOnly: { $lte: date }
+          }
+        });
+      }
+
+      pipeline = pipeline.concat([
         {
           $group: {
             _id: '$dateOnly',
@@ -56,12 +69,12 @@ export async function GET(request: NextRequest) {
             _id: 0
           }
         }
-      ];
+      ]);
       const aggregated = await predictions_collection.aggregate(pipeline).toArray();
       return NextResponse.json(aggregated);
     } else {
-      // For fleet, get latest aggregated per wheel
-      const pipeline = [
+      // For fleet, get latest aggregated per wheel (or specific date if provided)
+      let pipeline: any[] = [
         { $match: query },
         {
           $addFields: {
@@ -72,7 +85,19 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-        },
+        }
+      ];
+
+      // If date is specified, filter for that date or earlier
+      if (date) {
+        pipeline.push({
+          $match: {
+            dateOnly: { $lte: date }
+          }
+        });
+      }
+
+      pipeline = pipeline.concat([
         {
           $group: {
             _id: { TrainID: '$TrainID', CoachID: '$CoachID', WheelID: '$WheelID', dateOnly: '$dateOnly' },
@@ -106,7 +131,7 @@ export async function GET(request: NextRequest) {
             _id: 0
           }
         }
-      ];
+      ]);
       const aggregated = await predictions_collection.aggregate(pipeline).toArray();
       return NextResponse.json(aggregated);
     }
