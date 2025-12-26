@@ -326,7 +326,7 @@ const HomePage = () => {
     const [statusFilter, setStatusFilter] = useState<'all' | 'critical' | 'warning'>('all');
     const [coachTypeFilter, setCoachTypeFilter] = useState<'all' | 'D' | 'P' | 'M' | 'F'>('all');
     const [sortBy, setSortBy] = useState<'status' | 'trainset' | 'wear'>('status');
-    const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('compact');
+    const [wheelViewMode, setWheelViewMode] = useState<'compact' | 'detail'>('detail');
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
     const [sampleRate, setSampleRate] = useState<number>(3);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
