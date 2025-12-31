@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import {
     AlertTriangle, Train, Search, ChevronRight, Activity,
-    ArrowLeft, Info, X, RefreshCw, ChevronDown
+    ArrowLeft, Info, X, RefreshCw, ChevronDown, Download
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -21,6 +21,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // --- CONSTANTS & LOGIC ---
 
@@ -274,6 +276,109 @@ const fetchWheelTrend = async (trainId: string, coachId: string, wheelId: string
 
 
 
+// --- PDF & SCREENSHOT FUNCTIONS ---
+
+// Helper function to wait for charts to load
+const waitForChartsLoad = () => new Promise(resolve => setTimeout(resolve, 3000));
+
+// Capture screenshot of full train view (formation + coach details)
+const captureCoachScreenshot = async (trainId: string, coachId: string): Promise<string> => {
+    try {
+        // Wait for charts to render
+        await waitForChartsLoad();
+        
+        // Capture the main app container (not full body to avoid extra white space)
+        const appElement = document.querySelector('div[class*="flex h-screen"]') as HTMLElement;
+        if (!appElement) {
+            throw new Error('App container not found');
+        }
+        
+        // Get actual dimensions of the app content
+        const rect = appElement.getBoundingClientRect();
+        
+        // Capture the main app area with proper resolution
+        const canvas = await html2canvas(appElement, {
+            backgroundColor: '#ffffff',
+            scale: 1.0, // Optimized scale for quality vs size
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            width: rect.width,
+            height: rect.height,
+            scrollX: 0,
+            scrollY: 0,
+            ignoreElements: (element) => {
+                // Ignore overlay elements during screenshot
+                const el = element as HTMLElement;
+                return el.classList?.contains('fixed') && el.style?.zIndex === '50';
+            },
+            onclone: (clonedDoc) => {
+                // Remove any overlays from cloned document
+                const overlays = clonedDoc.querySelectorAll('[style*="z-index: 50"], .fixed');
+                overlays.forEach(el => el.remove());
+                
+                // Ensure proper styling in cloned document
+                const clonedApp = clonedDoc.querySelector('div[class*="flex h-screen"]') as HTMLElement;
+                if (clonedApp) {
+                    clonedApp.style.width = `${rect.width}px`;
+                    clonedApp.style.height = `${rect.height}px`;
+                }
+            }
+        });
+        
+        console.log(`Screenshot dimensions: ${canvas.width}x${canvas.height} for ${trainId}-${coachId}`);
+        return canvas.toDataURL('image/png', 0.95); // Slight compression for size
+    } catch (error) {
+        console.error(`Failed to capture screenshot for ${trainId}-${coachId}:`, error);
+        throw error;
+    }
+};
+
+// Generate PDF from array of screenshots
+const generatePDF = async (screenshots: Array<{trainId: string, coachId: string, image: string}>) => {
+    const pdf = new jsPDF('landscape', 'mm', 'a4'); // Landscape for full viewport
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    screenshots.forEach(({trainId, coachId, image}, index) => {
+        if (index > 0) pdf.addPage();
+        
+        // Add header with train info
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Train ${trainId} - Coach ${coachId}`, 20, 15);
+        
+        // Add date
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Generated: ${format(new Date(), 'PPP p')}`, 20, 22);
+        
+        // Load image to calculate proper aspect ratio
+        const img = new Image();
+        img.src = image;
+        
+        // Calculate image dimensions to maintain aspect ratio and fit page
+        const imgWidth = pageWidth - 25;
+        const imgHeight = (pageHeight - 35) * 0.8; // Leave margin for header
+        
+        pdf.addImage(image, 'PNG', 12, 28, imgWidth, imgHeight);
+    });
+    
+    return pdf.output('blob');
+};
+
+// Download file helper
+const downloadFile = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
 // --- COMPONENTS ---
 
 const StatusIndicator = ({ status, size = 'md' }: { status: 'healthy' | 'warning' | 'critical', size?: 'sm' | 'md' | 'lg' }) => {
@@ -330,6 +435,8 @@ const HomePage = () => {
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
     const [sampleRate, setSampleRate] = useState<number>(3);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+    const [downloadProgress, setDownloadProgress] = useState<{current: number, total: number, currentTrain?: string, currentCoach?: string} | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const getStdColor = (val: number | null) => {
         if (!val || val <= 0.5) return '#6b7280';
@@ -491,6 +598,95 @@ const HomePage = () => {
         setSelectedWheel(wheel);
     };
 
+    const downloadAllCoachViews = async () => {
+        if (isDownloading) return;
+        
+        setIsDownloading(true);
+        setDownloadProgress({ current: 0, total: fleetData.length });
+        
+        try {
+            let totalCoachesProcessed = 0;
+            
+            // Process each train separately
+            for (let trainIndex = 0; trainIndex < fleetData.length; trainIndex++) {
+                const train = fleetData[trainIndex];
+                
+                // Update progress for current train
+                setDownloadProgress({ 
+                    current: trainIndex + 1, 
+                    total: fleetData.length,
+                    currentTrain: train.id,
+                    currentCoach: 'Starting...'
+                });
+                
+                try {
+                    // Capture screenshots for all coaches in this train
+                    const trainScreenshots = [];
+                    
+                    for (let coachIndex = 0; coachIndex < train.coaches.length; coachIndex++) {
+                        const coach = train.coaches[coachIndex];
+                        
+                        setDownloadProgress({ 
+                            current: trainIndex + 1, 
+                            total: fleetData.length,
+                            currentTrain: train.id,
+                            currentCoach: `Coach ${coach.id} (${coachIndex + 1}/${train.coaches.length})`
+                        });
+                        
+                        try {
+                            // Navigate to coach detail view
+                            setSelectedTrainId(train.id);
+                            setSelectedCoachId(coach.id);
+                            setView('TRAIN');
+                            
+                            // Wait for charts to render and capture screenshot
+                            const image = await captureCoachScreenshot(train.id, coach.id);
+                            trainScreenshots.push({ trainId: train.id, coachId: coach.id, image });
+                            
+                            // Delay between captures for better quality
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            
+                        } catch (error) {
+                            console.error(`Failed to capture ${train.id}-${coach.id}:`, error);
+                            // Continue with next coach even if one fails
+                        }
+                    }
+                    
+                    // Generate and download PDF for this specific train
+                    if (trainScreenshots.length > 0) {
+                        const pdfBlob = await generatePDF(trainScreenshots);
+                        const filename = `train-${train.id}-all-coaches-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.pdf`;
+                        downloadFile(pdfBlob, filename);
+                        
+                        totalCoachesProcessed += trainScreenshots.length;
+                        console.log(`Downloaded PDF for ${train.id} with ${trainScreenshots.length} coaches`);
+                    }
+                    
+                    // Delay between trains to prevent browser overload
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                } catch (error) {
+                    console.error(`Failed to process train ${train.id}:`, error);
+                    // Continue with next train
+                }
+            }
+            
+            if (totalCoachesProcessed === 0) {
+                alert('No screenshots were captured. Please try again.');
+                return;
+            }
+            
+            alert(`Successfully downloaded ${fleetData.length} PDF files with ${totalCoachesProcessed} total coach views!`);
+            
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('Failed to download coach views. Please try again.');
+        } finally {
+            setIsDownloading(false);
+            setDownloadProgress(null);
+        }
+    };
+
     const closeWheelModal = () => {
         setSelectedWheel(null);
     };
@@ -571,14 +767,23 @@ const HomePage = () => {
                                     </TabsList>
                                 </Tabs>
 
-                               <button
-                                   onClick={loadData}
-                                   disabled={isLoading}
-                                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ml-4"
-                               >
-                                   <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                                   {isLoading ? 'Fetching...' : 'Fetch'}
-                               </button>
+                                <button
+                                    onClick={loadData}
+                                    disabled={isLoading}
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ml-4"
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                    {isLoading ? 'Fetching...' : 'Fetch'}
+                                </button>
+                                
+                                <button
+                                    onClick={downloadAllCoachViews}
+                                    disabled={isDownloading || fleetData.length === 0}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ml-2"
+                                >
+                                    <Download className={`w-4 h-4 ${isDownloading ? 'animate-pulse' : ''}`} />
+                                    {downloadProgress ? `Train ${downloadProgress.current}/${downloadProgress.total}` : 'Download All Views'}
+                                </button>
                          </div>
                      </header>
 
@@ -816,7 +1021,7 @@ const HomePage = () => {
                             </div>
                         </section>
 
-                          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex-1 max-h-[75vh]">
+                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex-1 max-h-[75vh]">
                               <div className="flex justify-between items-start mb-8">
                                   <div className="flex items-center gap-4">
                                       <div>
@@ -1188,8 +1393,59 @@ const HomePage = () => {
         );
     };
 
+    // Progress Overlay
+    const renderProgressOverlay = () => {
+        if (!downloadProgress) return null;
+        
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                            Downloading Coach Views
+                        </h3>
+                    </div>
+                    
+                    <div className="mb-2">
+                        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-1">
+                            <span>Trains</span>
+                            <span>{downloadProgress.current} / {downloadProgress.total}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div 
+                                className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${(downloadProgress.current / downloadProgress.total) * 100}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                    
+                    {downloadProgress.currentTrain && (
+                        <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Current Train: {downloadProgress.currentTrain}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                                Processing: {downloadProgress.currentCoach || 'Starting...'}
+                            </div>
+                        </div>
+                    )}
+                    
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Capturing full viewport screenshots (formation + coach details)... This may take several minutes.
+                    </p>
+                </div>
+            </div>
+        );
+    };
+
     // Main Render Switch
-    return view === 'FLEET' ? renderFleetDashboard() : renderTrainDetail();
+    return (
+        <>
+            {renderProgressOverlay()}
+            {view === 'FLEET' ? renderFleetDashboard() : renderTrainDetail()}
+        </>
+    );
 };
 
 export default HomePage;

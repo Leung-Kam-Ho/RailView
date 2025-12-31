@@ -8,6 +8,11 @@
 - `npm run genkit:dev` - Start AI development server
 - `npm run genkit:watch` - AI development with watch mode
 
+## Important Development Notes
+- **DO NOT run `npm run dev`** - This command will block the agent and prevent completion of tasks
+- Use `npm run typecheck` and `npm run lint` to validate code changes
+- Test functionality by building and running locally outside of the agent session
+
 ## Code Style Guidelines
 
 ### Imports
