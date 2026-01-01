@@ -344,24 +344,19 @@ const generatePDF = async (screenshots: Array<{trainId: string, coachId: string,
         if (index > 0) pdf.addPage();
         
         // Add header with train info
-        pdf.setFontSize(14);
+        pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Train ${trainId} - Coach ${coachId}`, 20, 15);
-        
-        // Add date
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Generated: ${format(new Date(), 'PPP p')}`, 20, 22);
+        pdf.text(`Train ${trainId} - Coach ${coachId} - ${format(new Date(), 'PPP p')}`, 5, 10);
         
         // Load image to calculate proper aspect ratio
         const img = new Image();
         img.src = image;
         
         // Calculate image dimensions to maintain aspect ratio and fit page
-        const imgWidth = pageWidth - 25;
-        const imgHeight = (pageHeight - 35) * 0.8; // Leave margin for header
+        const imgWidth = pageWidth - 5;
+        const imgHeight = pageHeight - 15; // Minimal margin for header
         
-        pdf.addImage(image, 'PNG', 12, 28, imgWidth, imgHeight);
+        pdf.addImage(image, 'PNG', 2, 12, imgWidth, imgHeight);
     });
     
     return pdf.output('blob');
