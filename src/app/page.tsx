@@ -336,31 +336,31 @@ const captureCoachScreenshot = async (trainId: string, coachId: string): Promise
 
 // Generate PDF from array of screenshots
 const generatePDF = async (screenshots: Array<{trainId: string, coachId: string, image: string}>) => {
-    const pdf = new jsPDF('landscape', 'mm', 'a4');
+    const appElement = document.querySelector('div[class*="flex h-screen"]') as HTMLElement;
+    if (!appElement) {
+        throw new Error('App container not found');
+    }
+    
+    // Get actual dimensions of the app content
+    const rect = appElement.getBoundingClientRect();
+    // Create a new jsPDF instance in landscape mode with rect dimensions
+    const pdf = new jsPDF('landscape', 'pt', [rect.width, rect.height]);
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     
-    screenshots.forEach(({trainId, coachId, image}, index) => {
+    screenshots.forEach(({image}, index) => {
         if (index > 0) pdf.addPage();
         
-        // Add header with train info
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        const now = new Date();
-        const formattedDate = format(now, 'PPP p');
-        pdf.text(`Train ${trainId} - Coach ${coachId} - ${formattedDate}`, 5, 10);
-
-        
-        //Scale to fit
+        // Scale to fit
         const imgProps = pdf.getImageProperties(image);
-        const imgWidth = pageWidth; // 10mm margin each side
+        const imgWidth = pageWidth;
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-        
         
         // Center horizontally
         const xOffset = (pageWidth - imgWidth) / 2;
+        const yOffset = 0;
         
-        pdf.addImage(image, 'PNG', xOffset, 12, imgWidth, imgHeight);
+        pdf.addImage(image, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
     });
     
     return pdf.output('blob');
