@@ -299,7 +299,7 @@ const captureCoachScreenshot = async (trainId: string, coachId: string): Promise
         // Capture the main app area with proper resolution
         const canvas = await html2canvas(appElement, {
             backgroundColor: '#ffffff',
-            scale: 1.0, // Optimized scale for quality vs size
+            scale: 2.0, // Optimized scale for quality vs size
             useCORS: true,
             allowTaint: true,
             logging: false,
@@ -346,18 +346,14 @@ const generatePDF = async (screenshots: Array<{trainId: string, coachId: string,
         // Add header with train info
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Train ${trainId} - Coach ${coachId}`, 5, 10);
-
-        // add date
         const now = new Date();
         const formattedDate = format(now, 'PPP p');
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Generated on: ${formattedDate}`, pageWidth - 60, 10);
+        pdf.text(`Train ${trainId} - Coach ${coachId} - ${formattedDate}`, 5, 10);
+
         
         //Scale to fit
         const imgProps = pdf.getImageProperties(image);
-        const imgWidth = pageWidth - 20; // 10mm margin each side
+        const imgWidth = pageWidth; // 10mm margin each side
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
         
         
@@ -1144,35 +1140,35 @@ const HomePage = () => {
                                              </div>
                                                <div className="h-48 flex items-center justify-center">
                                                    {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
-                                                       <ResponsiveContainer width="95%" height="95%">
-                                                             <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                                                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                                              <XAxis
-                                                                  dataKey="date"
-                                                                  tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                                  tickFormatter={(val) => {
-                                                                      const d = new Date(val);
-                                                                      return `${d.getDate()}`;
-                                                                  }}
-                                                                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                              />
-                                                               <YAxis
-                                                                   domain={[30, 36]}
+                                                        <ResponsiveContainer width="95%" height="95%">
+                                                              <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 1, right: 1, left: 1, bottom: 1 }}>
+                                                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                                               <XAxis
+                                                                   dataKey="date"
                                                                    tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                   tickFormatter={(val) => {
+                                                                       const d = new Date(val);
+                                                                       return `${d.getDate()}`;
+                                                                   }}
                                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                   width={15}
                                                                />
-                                                               <YAxis
-                                                                   yAxisId="std"
-                                                                   orientation="right"
-                                                                   domain={[0, 2]}
-                                                                   tick={{fontSize: 8, fill: 'hsl(var(--muted-foreground))'}}
-                                                                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                   axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                   width={30}
-                                                               />
+                                                                <YAxis
+                                                                    domain={[30, 36]}
+                                                                    tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                    width={25}
+                                                                />
+                                                                <YAxis
+                                                                    yAxisId="std"
+                                                                    orientation="right"
+                                                                    domain={[0, 2]}
+                                                                    tick={{fontSize: 8, fill: 'hsl(var(--muted-foreground))'}}
+                                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                    width={35}
+                                                                />
                                                               <Tooltip
                                                                   formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
                                                                   contentStyle={{
@@ -1289,36 +1285,36 @@ const HomePage = () => {
 
                                  <div className="flex-1 w-full min-h-0 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-black/20 p-4">
                                      {(wheelTrends[selectedWheel.id] && wheelTrends[selectedWheel.id].length > 0) ? (
-                                         <ResponsiveContainer width="100%" height="100%">
-                                             <ComposedChart data={wheelTrends[selectedWheel.id]} margin={{ top: 5, right: 40, left: 5, bottom: 5 }}>
-                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                                 <XAxis
-                                                     dataKey="date"
-                                                     tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
-                                                     tickFormatter={(val) => {
-                                                         const d = new Date(val);
-                                                         return `${d.getDate()}/${d.getMonth()+1}`;
-                                                     }}
-                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                 />
-                                                 <YAxis
-                                                     domain={[30, 36]}
-                                                     tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
-                                                     label={{ value: 'Wear Depth (mm)', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                 />
-                                                 <YAxis
-                                                     yAxisId="std"
-                                                     orientation="right"
-                                                     domain={[0, 2]}
-                                                     tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                     label={{ value: 'Daily Std (mm)', angle: 90, position: 'insideRight', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                     width={15}
-                                                 />
+                                          <ResponsiveContainer width="100%" height="100%">
+                                              <ComposedChart data={wheelTrends[selectedWheel.id]} margin={{ top: 10, right: 40, left: 10, bottom: 10 }}>
+                                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                                  <XAxis
+                                                      dataKey="date"
+                                                      tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
+                                                      tickFormatter={(val) => {
+                                                          const d = new Date(val);
+                                                          return `${d.getDate()}/${d.getMonth()+1}`;
+                                                      }}
+                                                      tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                      axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                  />
+                                                  <YAxis
+                                                      domain={[30, 36]}
+                                                      tick={{fontSize: 12, fill: 'hsl(var(--muted-foreground))'}}
+                                                      label={{ value: 'Wear Depth (mm)', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                                                      tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                      axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                  />
+                                                  <YAxis
+                                                      yAxisId="std"
+                                                      orientation="right"
+                                                      domain={[0, 2]}
+                                                      tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
+                                                      label={{ value: 'Daily Std (mm)', angle: 90, position: 'insideRight', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                                                      tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                      axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                      width={45}
+                                                  />
                                                    <Tooltip
                                                        formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
                                                        contentStyle={{
