@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     ResponsiveContainer, ReferenceLine, Area, ComposedChart, BarChart, Bar, Cell
@@ -336,7 +336,7 @@ const captureCoachScreenshot = async (trainId: string, coachId: string): Promise
 
 // Generate PDF from array of screenshots
 const generatePDF = async (screenshots: Array<{trainId: string, coachId: string, image: string}>) => {
-    const pdf = new jsPDF('landscape', 'mm', 'a4'); // Landscape for full viewport
+    const pdf = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     
@@ -346,17 +346,25 @@ const generatePDF = async (screenshots: Array<{trainId: string, coachId: string,
         // Add header with train info
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Train ${trainId} - Coach ${coachId} - ${format(new Date(), 'PPP p')}`, 5, 10);
+        pdf.text(`Train ${trainId} - Coach ${coachId}`, 5, 10);
+
+        // add date
+        const now = new Date();
+        const formattedDate = format(now, 'PPP p');
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Generated on: ${formattedDate}`, pageWidth - 60, 10);
         
-        // Load image to calculate proper aspect ratio
-        const img = new Image();
-        img.src = image;
+        //Scale to fit
+        const imgProps = pdf.getImageProperties(image);
+        const imgWidth = pageWidth - 20; // 10mm margin each side
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
         
-        // Calculate image dimensions to maintain aspect ratio and fit page
-        const imgWidth = pageWidth - 5;
-        const imgHeight = pageHeight - 15; // Minimal margin for header
         
-        pdf.addImage(image, 'PNG', 2, 12, imgWidth, imgHeight);
+        // Center horizontally
+        const xOffset = (pageWidth - imgWidth) / 2;
+        
+        pdf.addImage(image, 'PNG', xOffset, 12, imgWidth, imgHeight);
     });
     
     return pdf.output('blob');
@@ -430,7 +438,8 @@ const HomePage = () => {
     const [wheelTrends, setWheelTrends] = useState<Record<string, any[]>>({});
     const [sampleRate, setSampleRate] = useState<number>(3);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const [downloadProgress, setDownloadProgress] = useState<{current: number, total: number, currentTrain?: string, currentCoach?: string} | null>(null);
+    const [downloadProgress, setDownloadProgress] = useState<{current: number, total: number, currentTrain?: string, currentCoach?: string, cancelled?: boolean} | null>(null);
+    const cancelledRef = useRef(false);
     const [isDownloading, setIsDownloading] = useState(false);
 
     const getStdColor = (val: number | null) => {
@@ -597,22 +606,33 @@ const HomePage = () => {
         if (isDownloading) return;
         
         setIsDownloading(true);
-        setDownloadProgress({ current: 0, total: fleetData.length });
+        setDownloadProgress({ current: 0, total: fleetData.length, cancelled: false });
+        cancelledRef.current = false;
         
         try {
             let totalCoachesProcessed = 0;
             
             // Process each train separately
             for (let trainIndex = 0; trainIndex < fleetData.length; trainIndex++) {
+                // Check if cancelled
+                if (cancelledRef.current) {
+                    break;
+                }
                 const train = fleetData[trainIndex];
                 
-                // Update progress for current train
-                setDownloadProgress({ 
-                    current: trainIndex + 1, 
-                    total: fleetData.length,
-                    currentTrain: train.id,
-                    currentCoach: 'Starting...'
-                });
+                    // Check if cancelled
+                    if (cancelledRef.current) {
+                        break;
+                    }
+                    
+                    // Update progress for current train
+                    setDownloadProgress({ 
+                        current: trainIndex + 1, 
+                        total: fleetData.length,
+                        currentTrain: train.id,
+                        currentCoach: 'Starting...',
+                        cancelled: false
+                    });
                 
                 try {
                     // Capture screenshots for all coaches in this train
@@ -621,11 +641,17 @@ const HomePage = () => {
                     for (let coachIndex = 0; coachIndex < train.coaches.length; coachIndex++) {
                         const coach = train.coaches[coachIndex];
                         
+                        // Check if cancelled
+                        if (cancelledRef.current) {
+                            break;
+                        }
+                        
                         setDownloadProgress({ 
                             current: trainIndex + 1, 
                             total: fleetData.length,
                             currentTrain: train.id,
-                            currentCoach: `Coach ${coach.id} (${coachIndex + 1}/${train.coaches.length})`
+                            currentCoach: `Coach ${coach.id} (${coachIndex + 1}/${train.coaches.length})`,
+                            cancelled: false
                         });
                         
                         try {
@@ -666,12 +692,13 @@ const HomePage = () => {
                 }
             }
             
-            if (totalCoachesProcessed === 0) {
+            if (cancelledRef.current) {
+                alert('Screenshot capture was cancelled.');
+            } else if (totalCoachesProcessed === 0) {
                 alert('No screenshots were captured. Please try again.');
-                return;
+            } else {
+                alert(`Successfully downloaded ${fleetData.length} PDF files with ${totalCoachesProcessed} total coach views!`);
             }
-            
-            alert(`Successfully downloaded ${fleetData.length} PDF files with ${totalCoachesProcessed} total coach views!`);
             
         } catch (error) {
             console.error('Download failed:', error);
@@ -684,6 +711,11 @@ const HomePage = () => {
 
     const closeWheelModal = () => {
         setSelectedWheel(null);
+    };
+
+    const cancelDownload = () => {
+        cancelledRef.current = true;
+        setDownloadProgress(prev => prev ? {...prev, cancelled: true} : null);
     };
 
     if (!isClient || isLoading) {
@@ -1426,7 +1458,16 @@ const HomePage = () => {
                         </div>
                     )}
                     
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex gap-3 mt-4">
+                        <button
+                            onClick={cancelDownload}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                    
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
                         Capturing full viewport screenshots (formation + coach details)... This may take several minutes.
                     </p>
                 </div>
