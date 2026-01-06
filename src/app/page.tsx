@@ -719,7 +719,7 @@ const HomePage = () => {
 
     if (!isClient || isLoading) {
         return (
-            <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 items-center justify-center">
+            <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-900 items-center justify-center overflow-x-hidden">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                     <p className="text-slate-600 dark:text-slate-400">Loading fleet data...</p>
@@ -734,36 +734,36 @@ const HomePage = () => {
         );
 
         return (
-            <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200">
-                <div className="flex-1 flex flex-col min-h-screen">
-                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-3 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4">
+            <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 overflow-x-hidden">
+                <div className="flex-1 flex flex-col min-h-screen w-full overflow-x-hidden">
+                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-2 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4 w-full">
                              <div className="flex items-center justify-between w-full flex-wrap gap-2">
                                  <div className="flex items-center gap-1 md:gap-3">
                                      <button
                                          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                         className="p-1.5 md:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors md:hidden"
+                                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors md:hidden"
                                      >
-                                         <Menu className="w-4 h-4 md:w-5 md:h-5 text-slate-600 dark:text-slate-400" />
+                                         <Menu className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                                      </button>
-                                     <div>
-                                         <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1 md:gap-2">
-                                             <Train className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" /> {'RailView'}
+                                     <div className="min-w-0 flex-1">
+                                         <h1 className="text-base md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1 md:gap-2 truncate">
+                                             <Train className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 flex-shrink-0" /> <span className="truncate">{'RailView'}</span>
                                          </h1>
                                          {selectedDate && (
-                                             <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                 Data as of: {format(selectedDate, 'PPP')}
+                                             <p className="text-[9px] md:text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                                 {format(selectedDate, 'PPP')}
                                              </p>
                                          )}
                                      </div>
                                  </div>
-                         </div>
-                         <div className="flex items-center gap-1 md:gap-3 md:gap-6 flex-wrap w-full md:w-auto">
-                                <div className="relative flex-shrink-0 flex-1 max-w-xs md:max-w-none">
-                                    <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
+                             </div>
+                         <div className="flex items-center gap-1 md:gap-3 flex-wrap w-full md:w-auto">
+                                <div className="relative flex-1 min-w-0">
+                                    <Search className="absolute left-2 top-2 text-slate-400 dark:text-slate-500 w-3 h-3" />
                                     <input
                                         type="text"
-                                        placeholder="Search TS01..."
-                                        className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full text-sm"
+                                        placeholder="Search..."
+                                        className="pl-7 pr-2 py-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full text-xs md:text-sm"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -771,13 +771,12 @@ const HomePage = () => {
                                
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button
-                                            className="flex items-center gap-2 px-2 md:px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs md:text-sm"
-                                        >
-                                            <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                            <span className="hidden md:inline">{selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}</span>
-                                            <span className="md:hidden">{selectedDate ? format(selectedDate, 'MM/dd') : 'Date'}</span>
-                                        </button>
+                             <button
+                                        className="flex items-center gap-1 px-1.5 md:px-3 py-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-[10px] md:text-xs"
+                                    >
+                                        <CalendarIcon className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+                                        <span className="hidden sm:inline">{selectedDate ? format(selectedDate, 'PPP') : 'Date'}</span>
+                                    </button>
                                     </PopoverTrigger>
                                    <PopoverContent className="w-auto p-0" align="start">
                                        <Calendar
@@ -793,13 +792,13 @@ const HomePage = () => {
                                
                                 <button
                                     onClick={() => setSelectedDate(new Date())}
-                                    className="px-2 md:px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs md:text-sm font-medium"
+                                    className="px-2 md:px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-[10px] md:text-xs font-medium"
                                 >
                                     Today
                                 </button>
                                  <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'trainset' | 'coach')}>
-                                     <TabsList className="grid w-full grid-cols-2 text-xs md:text-sm">
-                                         <TabsTrigger value="trainset">Trainset</TabsTrigger>
+                                     <TabsList className="grid w-full grid-cols-2 text-[10px] md:text-xs">
+                                         <TabsTrigger value="trainset">Train</TabsTrigger>
                                          <TabsTrigger value="coach">Coach</TabsTrigger>
                                      </TabsList>
                                  </Tabs>
@@ -807,46 +806,46 @@ const HomePage = () => {
                                 <button
                                     onClick={loadData}
                                     disabled={isLoading}
-                                    className="px-2 md:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-xs md:text-sm font-medium flex items-center gap-2"
+                                    className="px-1.5 md:px-4 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-[10px] md:text-xs font-medium flex items-center gap-1"
                                 >
-                                    <RefreshCw className={`w-3 md:w-4 h-3 md:h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                    <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
                                     <span className="hidden md:inline">{isLoading ? 'Fetching...' : 'Fetch'}</span>
                                 </button>
                                  
                                 <button
                                     onClick={downloadAllCoachViews}
                                     disabled={isDownloading || fleetData.length === 0}
-                                    className="px-2 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs md:text-sm font-medium flex items-center gap-2"
+                                    className="px-1.5 md:px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-[10px] md:text-xs font-medium flex items-center gap-1"
                                 >
-                                    <Download className={`w-3 md:w-4 h-3 md:h-4 ${isDownloading ? 'animate-pulse' : ''}`} />
+                                    <Download className={`w-3 h-3 ${isDownloading ? 'animate-pulse' : ''}`} />
                                     <span className="hidden md:inline">{downloadProgress ? `Train ${downloadProgress.current}/${downloadProgress.total}` : 'Download All'}</span>
                                 </button>
                          </div>
                      </header>
 
-                       <div className="px-3 md:px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs md:text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center flex-wrap gap-2">
-                          <div>
-                            Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
-                          </div>
-                          <div className="flex gap-2 items-center">
-                              <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
-                                  <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
-                                  <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950'}`}>
-                                      <div className="w-2 h-2 bg-rose-600 rounded-full"></div> Critical
-                                  </button>
-                                  <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950'}`}>
-                                      <div className="w-2 h-2 bg-amber-500 rounded-full"></div> Warning
-                                  </button>
+                       <div className="px-2 md:px-6 py-1.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-[10px] md:text-xs text-slate-500 dark:text-slate-400 flex justify-between items-center flex-wrap gap-2">
+                           <div className="truncate">
+                             Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
+                           </div>
+                           <div className="flex gap-1 md:gap-2 items-center flex-wrap">
+                               <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-[10px] font-medium">
+                                   <button onClick={() => setStatusFilter('all')} className={`flex items-center gap-0.5 px-2 py-1 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
+                                   <button onClick={() => setStatusFilter('critical')} className={`flex items-center gap-0.5 px-2 py-1 border-r border-slate-300 dark:border-slate-600 transition-colors ${statusFilter === 'critical' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950'}`}>
+                                       <div className="w-1.5 h-1.5 bg-rose-600 rounded-full"></div> Crit
+                                   </button>
+                                   <button onClick={() => setStatusFilter('warning')} className={`flex items-center gap-0.5 px-2 py-1 transition-colors ${statusFilter === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950'}`}>
+                                       <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div> Warn
+                                   </button>
                               </div>
                                {viewMode === 'coach' && (
                                    <>
-                                       <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-xs font-medium">
-                                           <button onClick={() => setCoachTypeFilter('all')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
-                                           <button onClick={() => setCoachTypeFilter('D')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>D</button>
-                                           <button onClick={() => setCoachTypeFilter('P')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>P</button>
-                                           <button onClick={() => setCoachTypeFilter('M')} className={`flex items-center gap-1 px-3 py-1.5 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>M</button>
-                                           <button onClick={() => setCoachTypeFilter('F')} className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>F</button>
-                                       </div>
+                                        <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden text-[10px] font-medium">
+                                            <button onClick={() => setCoachTypeFilter('all')} className={`flex items-center gap-0.5 px-2 py-1 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>All</button>
+                                            <button onClick={() => setCoachTypeFilter('D')} className={`flex items-center gap-0.5 px-2 py-1 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'D' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>D</button>
+                                            <button onClick={() => setCoachTypeFilter('P')} className={`flex items-center gap-0.5 px-2 py-1 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'P' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>P</button>
+                                            <button onClick={() => setCoachTypeFilter('M')} className={`flex items-center gap-0.5 px-2 py-1 border-r border-slate-300 dark:border-slate-600 transition-colors ${coachTypeFilter === 'M' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>M</button>
+                                            <button onClick={() => setCoachTypeFilter('F')} className={`flex items-center gap-0.5 px-2 py-1 transition-colors ${coachTypeFilter === 'F' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>F</button>
+                                        </div>
                                        <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1 ml-2">
@@ -867,15 +866,15 @@ const HomePage = () => {
                           </div>
                       </div>
 
-                    <main className="flex-1 overflow-y-auto p-3 md:p-6">
+                    <main className="flex-1 overflow-x-hidden overflow-y-auto p-2 md:p-6">
                           {viewMode === 'trainset' ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-3 lg:gap-4 p-1 md:p-0">
+                              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1 md:gap-2 lg:gap-3 xl:gap-4 p-1 md:p-0 w-full">
                                   {(filteredItems as Train[]).map(train => (
                                      <button
                                          key={train.id}
                                          onClick={() => handleTrainSelect(train.id)}
                                          className={`
-                                                  relative group p-3 md:p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-2 md:gap-3 h-28 md:h-32
+                                              relative group p-2 md:p-3 lg:p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-1 md:gap-2 lg:gap-3 h-24 md:h-28 lg:h-32
                                              ${train.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
                                              train.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
                                              'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
@@ -891,7 +890,7 @@ const HomePage = () => {
                                  ))}
                              </div>
                           ) : (
-                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-3 lg:gap-4 p-1 md:p-0">
+                               <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1 md:gap-2 lg:gap-3 xl:gap-4 p-1 md:p-0 w-full">
                                    {(filteredItems as FilteredCoach[]).map(coach => (
                                          <button
                                              key={`${coach.trainId}-${coach.id}`}
@@ -962,22 +961,22 @@ const HomePage = () => {
         const wheelsDown = selectedCoachData?.wheels.filter(w => w.position.includes('D')) || [];
 
         return (
-            <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
-                <div className="flex-1 flex flex-col min-h-screen relative">
+            <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans overflow-x-hidden">
+                <div className="flex-1 flex flex-col min-h-screen w-full relative overflow-x-hidden">
                     
-                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 md:px-6 py-3 md:py-4 flex items-center gap-2 md:gap-4 shadow-sm z-10 flex-wrap">
+                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-3 md:px-6 py-2 md:py-4 flex items-center gap-1 md:gap-4 shadow-sm z-10 flex-wrap w-full">
                         <button 
                             onClick={() => setView('FLEET')}
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
+                            className="p-1.5 md:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
-                             <div className="flex items-center gap-0.5 md:gap-1 md:gap-2 text-xs md:text-sm text-slate-500 dark:text-slate-400">
-                                <span className="hover:text-indigo-600 cursor-pointer" onClick={() => setView('FLEET')}>Fleet</span>
-                                <ChevronRight className="w-2 h-2 md:w-3 md:h-3 md:w-4 md:h-4" />
-                                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm md:text-base md:text-lg truncate max-w-[120px] md:max-w-none">{selectedTrainId}</span>
-                            </div>
-                        <div className="ml-auto flex gap-1 md:gap-2 md:gap-3 items-center flex-wrap">
+                        <div className="flex items-center gap-0.5 md:gap-1 text-[10px] md:text-xs text-slate-500 dark:text-slate-400 min-w-0 flex-1">
+                            <span className="hover:text-indigo-600 cursor-pointer truncate" onClick={() => setView('FLEET')}>Fleet</span>
+                            <ChevronRight className="w-2 h-2 md:w-3 md:h-3 flex-shrink-0" />
+                            <span className="font-bold text-slate-800 dark:text-slate-200 text-xs md:text-sm md:text-base truncate">{selectedTrainId}</span>
+                        </div>
+                        <div className="ml-auto flex gap-1 md:gap-2 items-center flex-wrap">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button
@@ -1001,7 +1000,7 @@ const HomePage = () => {
                             
                             <button
                                 onClick={() => setSelectedDate(new Date())}
-                                className="px-2 md:px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs md:text-sm font-medium"
+                                className="px-1.5 md:px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-[10px] md:text-xs font-medium"
                             >
                                 Today
                             </button>
@@ -1030,13 +1029,13 @@ const HomePage = () => {
                                              <button
                                                  onClick={() => setSelectedCoachId(coach.id)}
                                                  className={`
-                                                     flex-1 min-w-[60px] md:min-w-[80px] h-20 md:h-24 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1 md:gap-2 relative
+                                                     flex-1 min-w-[48px] xs:min-w-[56px] sm:min-w-[64px] md:min-w-[80px] h-16 xs:h-18 sm:h-20 md:h-24 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-0.5 md:gap-2 relative
                                                      ${selectedCoachId === coach.id 
                                                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 shadow-lg scale-105 z-10' 
                                                          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow'}
                                                  `}
                                              >
-                                                 <span className={`text-sm md:text-lg font-bold ${selectedCoachId === coach.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>{coach.id}</span>
+                                                 <span className={`text-xs sm:text-sm md:text-lg font-bold ${selectedCoachId === coach.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'} truncate`}>{coach.id}</span>
                                                 <StatusIndicator status={coach.status} />
                                             </button>
                                             
