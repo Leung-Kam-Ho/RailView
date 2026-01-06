@@ -7,9 +7,10 @@ import {
 } from 'recharts';
 import {
     AlertTriangle, Train, Search, ChevronRight, Activity,
-    ArrowLeft, Info, X, RefreshCw, ChevronDown, Download
+    ArrowLeft, Info, X, RefreshCw, ChevronDown, Download, Menu
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -414,9 +415,9 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
                         {wheel.status}
                     </div>
                 )}
+                </div>
             </div>
-        </div>
-    );
+        );
 };
 
 const HomePage = () => {
@@ -437,6 +438,8 @@ const HomePage = () => {
     const [downloadProgress, setDownloadProgress] = useState<{current: number, total: number, currentTrain?: string, currentCoach?: string, cancelled?: boolean} | null>(null);
     const cancelledRef = useRef(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     const getStdColor = (val: number | null) => {
         if (!val || val <= 0.5) return '#6b7280';
@@ -733,38 +736,49 @@ const HomePage = () => {
         return (
             <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans text-slate-800 dark:text-slate-200">
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
-                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-6 flex justify-between items-center">
-                         <div>
-                             <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                 <Train className="text-indigo-600" /> {'RailView'}
-                             </h1>
-                             {selectedDate && (
-                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                     Data as of: {format(selectedDate, 'PPP')}
-                                 </p>
-                             )}
-                        </div>
-                         <div className="flex items-center gap-6">
-                               <div className="relative">
-                                   <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
-                                   <input
-                                       type="text"
-                                       placeholder="Search TS01..."
-                                       className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
-                                       value={searchTerm}
-                                       onChange={(e) => setSearchTerm(e.target.value)}
-                                   />
-                               </div>
+                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                         <div className="flex items-center justify-between w-full">
+                             <div className="flex items-center gap-3">
+                                 <button
+                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                     className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors md:hidden"
+                                 >
+                                     <Menu className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                                 </button>
+                                 <div>
+                                     <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                         <Train className="text-indigo-600" /> {'RailView'}
+                                     </h1>
+                                     {selectedDate && (
+                                         <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                             Data as of: {format(selectedDate, 'PPP')}
+                                         </p>
+                                     )}
+                                 </div>
+                             </div>
+                         </div>
+                         <div className="flex items-center gap-3 md:gap-6 flex-wrap w-full md:w-auto">
+                                <div className="relative flex-shrink-0">
+                                    <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search TS01..."
+                                        className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-40 md:w-64 text-sm"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
                                
-                               <Popover>
-                                   <PopoverTrigger asChild>
-                                       <button
-                                           className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                                       >
-                                           <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                           {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
-                                       </button>
-                                   </PopoverTrigger>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="flex items-center gap-2 px-2 md:px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs md:text-sm"
+                                        >
+                                            <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                            <span className="hidden md:inline">{selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}</span>
+                                            <span className="md:hidden">{selectedDate ? format(selectedDate, 'MM/dd') : 'Date'}</span>
+                                        </button>
+                                    </PopoverTrigger>
                                    <PopoverContent className="w-auto p-0" align="start">
                                        <Calendar
                                            mode="single"
@@ -777,40 +791,40 @@ const HomePage = () => {
                                    </PopoverContent>
                                </Popover>
                                
-                               <button
-                                   onClick={() => setSelectedDate(new Date())}
-                                   className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-                               >
-                                   Today
-                               </button>
-                                <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'trainset' | 'coach')}>
-                                    <TabsList className="grid w-full grid-cols-2">
-                                        <TabsTrigger value="trainset">Trainset</TabsTrigger>
-                                        <TabsTrigger value="coach">Coach</TabsTrigger>
-                                    </TabsList>
-                                </Tabs>
+                                <button
+                                    onClick={() => setSelectedDate(new Date())}
+                                    className="px-2 md:px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs md:text-sm font-medium"
+                                >
+                                    Today
+                                </button>
+                                 <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'trainset' | 'coach')}>
+                                     <TabsList className="grid w-full grid-cols-2 text-xs md:text-sm">
+                                         <TabsTrigger value="trainset">Trainset</TabsTrigger>
+                                         <TabsTrigger value="coach">Coach</TabsTrigger>
+                                     </TabsList>
+                                 </Tabs>
 
                                 <button
                                     onClick={loadData}
                                     disabled={isLoading}
-                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ml-4"
+                                    className="px-2 md:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-xs md:text-sm font-medium flex items-center gap-2"
                                 >
-                                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                                    {isLoading ? 'Fetching...' : 'Fetch'}
+                                    <RefreshCw className={`w-3 md:w-4 h-3 md:h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                    <span className="hidden md:inline">{isLoading ? 'Fetching...' : 'Fetch'}</span>
                                 </button>
-                                
+                                 
                                 <button
                                     onClick={downloadAllCoachViews}
                                     disabled={isDownloading || fleetData.length === 0}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ml-2"
+                                    className="px-2 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs md:text-sm font-medium flex items-center gap-2"
                                 >
-                                    <Download className={`w-4 h-4 ${isDownloading ? 'animate-pulse' : ''}`} />
-                                    {downloadProgress ? `Train ${downloadProgress.current}/${downloadProgress.total}` : 'Download All Views'}
+                                    <Download className={`w-3 md:w-4 h-3 md:h-4 ${isDownloading ? 'animate-pulse' : ''}`} />
+                                    <span className="hidden md:inline">{downloadProgress ? `Train ${downloadProgress.current}/${downloadProgress.total}` : 'Download All'}</span>
                                 </button>
                          </div>
                      </header>
 
-                      <div className="px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                       <div className="px-4 md:px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs md:text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center flex-wrap gap-2">
                           <div>
                             Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
                           </div>
@@ -853,9 +867,9 @@ const HomePage = () => {
                           </div>
                       </div>
 
-                      <main className="flex-1 overflow-y-auto p-6">
-                         {viewMode === 'trainset' ? (
-                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                    <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                          {viewMode === 'trainset' ? (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                                   {(filteredItems as Train[]).map(train => (
                                      <button
                                          key={train.id}
@@ -876,8 +890,8 @@ const HomePage = () => {
                                      </button>
                                  ))}
                              </div>
-                         ) : (
-                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                          ) : (
+                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                                    {(filteredItems as FilteredCoach[]).map(coach => (
                                          <button
                                              key={`${coach.trainId}-${coach.id}`}
@@ -905,7 +919,7 @@ const HomePage = () => {
                      </main>
                 </div>
 
-                <div className="w-80 bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 flex flex-col h-full shadow-xl z-10">
+                <div className={`${isMobile ? 'fixed inset-y-0 right-0 w-80' : 'w-80'} bg-white dark:bg-slate-950 border-l ${isMobile ? 'border-l-0' : 'border-l border-slate-200 dark:border-slate-800'} flex flex-col h-full shadow-xl z-20 transform transition-transform duration-300 ${isMobile && !isSidebarOpen ? 'translate-x-full' : 'translate-x-0'}`}>
                     <div className="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                         <h2 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                             <AlertTriangle className="text-rose-500 w-5 h-5" /> Action Required
@@ -951,23 +965,23 @@ const HomePage = () => {
             <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans">
                 <div className="flex-1 flex flex-col h-full relative">
                     
-                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center gap-4 shadow-sm z-10">
+                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 md:px-6 py-3 md:py-4 flex items-center gap-2 md:gap-4 shadow-sm z-10 flex-wrap">
                         <button 
                             onClick={() => setView('FLEET')}
                             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-slate-500 dark:text-slate-400">
                             <span className="hover:text-indigo-600 cursor-pointer" onClick={() => setView('FLEET')}>Fleet</span>
-                            <ChevronRight className="w-4 h-4" />
-                            <span className="font-bold text-slate-800 dark:text-slate-200 text-lg">{selectedTrainId}</span>
+                            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
+                            <span className="font-bold text-slate-800 dark:text-slate-200 text-base md:text-lg">{selectedTrainId}</span>
                         </div>
-                        <div className="ml-auto flex gap-3 items-center">
+                        <div className="ml-auto flex gap-2 md:gap-3 items-center flex-wrap">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                        className="flex items-center gap-2 px-2 md:px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs md:text-sm"
                                     >
                                         <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                         {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
@@ -987,14 +1001,14 @@ const HomePage = () => {
                             
                             <button
                                 onClick={() => setSelectedDate(new Date())}
-                                className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                                className="px-2 md:px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs md:text-sm font-medium"
                             >
                                 Today
                             </button>
                             
                             <div className="text-right hidden md:block">
                                 <div className="text-xs text-slate-400 dark:text-slate-500">Last Inspection</div>
-                                <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Today, 08:00 AM</div>
+                                <div className="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300">Today, 08:00 AM</div>
                             </div>
                         </div>
                     </header>
@@ -1006,28 +1020,28 @@ const HomePage = () => {
                                     {formationString}
                                 </h3>
                             </div>
-                            <div className="flex gap-2 overflow-x-auto pb-6 pt-2 px-2">
+                             <div className="flex gap-1 md:gap-2 overflow-x-auto pb-4 md:pb-6 pt-2 px-2">
                                 {selectedTrainData.coaches.map((coach, index) => {
                                     const isUnitCoupler = index === 2 || index === 5;
                                     const isLast = index === 8;
 
                                     return (
                                         <div className="flex items-center" key={coach.id}>
-                                            <button
-                                                onClick={() => setSelectedCoachId(coach.id)}
-                                                className={`
-                                                    flex-1 min-w-[80px] h-24 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-2 relative
-                                                    ${selectedCoachId === coach.id 
-                                                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 shadow-lg scale-105 z-10' 
-                                                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow'}
-                                                `}
-                                            >
-                                                <span className={`text-lg font-bold ${selectedCoachId === coach.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>{coach.id}</span>
+                                             <button
+                                                 onClick={() => setSelectedCoachId(coach.id)}
+                                                 className={`
+                                                     flex-1 min-w-[60px] md:min-w-[80px] h-20 md:h-24 rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1 md:gap-2 relative
+                                                     ${selectedCoachId === coach.id 
+                                                         ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 shadow-lg scale-105 z-10' 
+                                                         : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow'}
+                                                 `}
+                                             >
+                                                 <span className={`text-sm md:text-lg font-bold ${selectedCoachId === coach.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>{coach.id}</span>
                                                 <StatusIndicator status={coach.status} />
                                             </button>
                                             
-                                            {!isLast && (
-                                                <div className="flex items-center justify-center w-8 relative">
+                                              {!isLast && (
+                                                 <div className="flex items-center justify-center w-4 md:w-8 relative">
                                                     {isUnitCoupler ? (
                                                         <div className="flex flex-col items-center gap-0.5">
                                                             <div className="w-6 h-1.5 bg-slate-800 dark:bg-slate-400 rounded-full"></div>
@@ -1044,11 +1058,11 @@ const HomePage = () => {
                             </div>
                         </section>
 
-                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex-1 max-h-[75vh]">
+                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 md:p-8 flex-1 max-h-[75vh]">
                               <div className="flex justify-between items-start mb-8">
                                   <div className="flex items-center gap-4">
                                       <div>
-                                          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
+                                           <h2 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-200">Coach {selectedCoachId} - Wheel Arrangement</h2>
                                           <p className="text-slate-400 dark:text-slate-500 text-sm">{wheelViewMode === 'compact' ? 'Select a wheel to view detailed wear analysis' : 'All wheel wear trends'}</p>
                                       </div>
                                        <Tabs value={wheelViewMode} onValueChange={(value) => setWheelViewMode(value as 'compact' | 'detail')}>
@@ -1076,7 +1090,7 @@ const HomePage = () => {
                                        </DropdownMenu>
                                    </div>
 
-                                     <div className="flex gap-4 text-sm">
+                                      <div className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
                                          <div className="flex items-center gap-2">
                                              <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
                                              <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
@@ -1118,7 +1132,7 @@ const HomePage = () => {
                                      <div className="absolute -left-16 bottom-4 text-xs font-bold text-slate-400 dark:text-slate-500">DOWN SIDE</div>
                                  </div>
                              ) : (
-                                 <div className="grid grid-cols-4 gap-4">
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                                      {selectedCoachData?.wheels.sort((a, b) => {
                                          const aIsU = a.position.includes('U');
                                          const bIsU = b.position.includes('U');
@@ -1246,31 +1260,31 @@ const HomePage = () => {
                     </main>
                 </div>
 
-                {selectedWheel && (
-                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-2">
-                         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[90vw] h-[85vh] flex flex-col overflow-hidden animate-in fade-in-95 duration-300">
+                 {selectedWheel && (
+                      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-2">
+                          <div className="bg-white dark:bg-slate-900 rounded-xl md:rounded-2xl shadow-2xl w-[95vw] md:w-[90vw] h-[90vh] md:h-[85vh] flex flex-col overflow-hidden animate-in fade-in-95 duration-300">
                             
-                            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-900/50">
+                            <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-900/50">
                                 <div>
                                     <div className="flex items-center gap-3 mb-1">
                                         <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-1 rounded">
                                             {selectedTrainId} / {selectedCoachId}
                                         </span>
-                                        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Wheel Position {selectedWheel.position}</h2>
+                                        <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-200">Wheel Position {selectedWheel.position}</h2>
                                     </div>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm">Current Wear Value: <strong className="text-slate-800 dark:text-slate-200">{selectedWheel.currentVal} mm</strong></p>
+                                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm">Current Wear Value: <strong className="text-slate-800 dark:text-slate-200">{selectedWheel.currentVal} mm</strong></p>
                                 </div>
                                 <button onClick={closeWheelModal} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors">
                                     <X className="text-slate-500 dark:text-slate-400" />
                                 </button>
                             </div>
 
-                            <div className="flex-1 p-6 flex flex-col min-h-0">
+                             <div className="flex-1 p-4 md:p-6 flex flex-col min-h-0">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                        <Activity className="w-4 h-4 text-indigo-500" /> Wear Level Trend Analysis
-                                    </h3>
-                                     <div className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
+                                     <h3 className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                         <Activity className="w-3 h-3 md:w-4 md:h-4 text-indigo-500" /> Wear Level Trend Analysis
+                                     </h3>
+                                      <div className="flex flex-wrap gap-2 md:gap-4 text-xs text-slate-500 dark:text-slate-400">
                                          <div className="flex items-center gap-1">
                                              <div className="w-3 h-1 bg-rose-500"></div> Condemning Limit ({LIMIT_CRITICAL}mm)
                                          </div>
@@ -1397,9 +1411,9 @@ const HomePage = () => {
                                      )}
                                  </div>
                                 
-                                <div className="mt-4 bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-lg border border-indigo-100 dark:border-indigo-900 flex gap-4 items-start">
+                                 <div className="mt-2 md:mt-4 bg-indigo-50 dark:bg-indigo-950/40 p-3 md:p-4 rounded-lg border border-indigo-100 dark:border-indigo-900 flex gap-2 md:gap-4 items-start">
                                     <Info className="text-indigo-600 dark:text-indigo-400 w-5 h-5 mt-0.5" />
-                                    <div className="text-sm text-slate-700 dark:text-slate-300">
+                                     <div className="text-xs md:text-sm text-slate-700 dark:text-slate-300">
                                         <strong>Analysis Insight:</strong> 
                                         {selectedWheel.status === 'healthy' 
                                             ? " Wear rate is nominal. Next scheduled maintenance in 4 months." 
@@ -1422,16 +1436,16 @@ const HomePage = () => {
         
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 md:p-6 max-w-md w-full mx-4 shadow-xl">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                        <h3 className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-200">
                             Downloading Coach Views
                         </h3>
                     </div>
                     
                     <div className="mb-2">
-                        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-1">
+                         <div className="flex justify-between text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-1">
                             <span>Trains</span>
                             <span>{downloadProgress.current} / {downloadProgress.total}</span>
                         </div>
@@ -1444,26 +1458,26 @@ const HomePage = () => {
                     </div>
                     
                     {downloadProgress.currentTrain && (
-                        <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                         <div className="mb-4 p-2 md:p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                            <div className="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Current Train: {downloadProgress.currentTrain}
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                            <div className="text-xs md:text-sm text-slate-500 dark:text-slate-400">
                                 Processing: {downloadProgress.currentCoach || 'Starting...'}
                             </div>
                         </div>
                     )}
                     
                     <div className="flex gap-3 mt-4">
-                        <button
-                            onClick={cancelDownload}
-                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-                        >
-                            Cancel
-                        </button>
+                         <button
+                             onClick={cancelDownload}
+                             className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 md:px-4 py-2 rounded-lg transition-colors text-sm"
+                         >
+                             Cancel
+                         </button>
                     </div>
                     
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                     <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-3">
                         Capturing full viewport screenshots (formation + coach details)... This may take several minutes.
                     </p>
                 </div>
@@ -1475,7 +1489,15 @@ const HomePage = () => {
     return (
         <>
             {renderProgressOverlay()}
-            {view === 'FLEET' ? renderFleetDashboard() : renderTrainDetail()}
+            <div className="relative">
+                {view === 'FLEET' ? renderFleetDashboard() : renderTrainDetail()}
+                {isMobile && isSidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                )}
+            </div>
         </>
     );
 };
