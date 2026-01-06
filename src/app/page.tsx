@@ -1089,20 +1089,29 @@ const HomePage = () => {
                                        </DropdownMenu>
                                    </div>
 
-                                      <div className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-3 h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600"></div>
-                                             <span className="text-slate-500 dark:text-slate-400">Healthy (&lt;{LIMIT_WARNING}mm)</span>
-                                         </div>
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-3 h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700"></div>
-                                             <span className="text-slate-500 dark:text-slate-400">Warning (&gt;{LIMIT_WARNING}mm)</span>
-                                         </div>
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-3 h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700"></div>
-                                             <span className="text-slate-500 dark:text-slate-400">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
-                                         </div>
-                                     </div>
+                                      <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-4 text-[10px] md:text-xs">
+                                          <div className="flex items-center gap-1 md:gap-2 min-w-0">
+                                              <div className="w-2 h-2 md:w-3 md:h-3 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600 flex-shrink-0"></div>
+                                              <span className="text-slate-500 dark:text-slate-400 truncate">
+                                                <span className="hidden sm:inline">Healthy (&lt;{LIMIT_WARNING}mm)</span>
+                                                <span className="sm:hidden">Hlt;{LIMIT_WARNING}</span>
+                                              </span>
+                                          </div>
+                                          <div className="flex items-center gap-1 md:gap-2 min-w-0">
+                                              <div className="w-2 h-2 md:w-3 md:h-3 bg-amber-100 dark:bg-amber-950 rounded border border-amber-500 dark:border-amber-700 flex-shrink-0"></div>
+                                              <span className="text-slate-500 dark:text-slate-400 truncate">
+                                                <span className="hidden sm:inline">Warning (&gt;{LIMIT_WARNING}mm)</span>
+                                                <span className="sm:hidden">Wgt;{LIMIT_WARNING}</span>
+                                              </span>
+                                          </div>
+                                          <div className="flex items-center gap-1 md:gap-2 min-w-0">
+                                              <div className="w-2 h-2 md:w-3 md:h-3 bg-rose-100 dark:bg-rose-950 rounded border border-rose-600 dark:border-rose-700 flex-shrink-0"></div>
+                                              <span className="text-slate-500 dark:text-slate-400 truncate">
+                                                <span className="hidden sm:inline">Critical (&gt;{LIMIT_CRITICAL}mm)</span>
+                                                <span className="sm:hidden">Cgt;{LIMIT_CRITICAL}</span>
+                                              </span>
+                                          </div>
+                                      </div>
 
                               </div>
 
