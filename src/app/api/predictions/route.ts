@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
 
   try {
     await client.connect();
-    const db = client.db('FBG');
-    const predictions_collection = db.collection('Prediction');
+    const db = client.db(process.env.MONGODB_DB_NAME || 'FBG');
+    const predictions_collection = db.collection(process.env.MONGODB_PREDICTIONS_COLLECTION || 'Prediction');
 
     let query: any = {};
     if (train_id) query.TrainID = train_id;

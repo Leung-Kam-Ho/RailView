@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
 
   try {
     await client.connect();
-    const db = client.db('FBG');
-    const measurements_collection = db.collection('MeasurementRecords');
+    const db = client.db(process.env.MONGODB_DB_NAME || 'FBG');
+    const measurements_collection = db.collection(process.env.MONGODB_MEASUREMENTS_COLLECTION || 'MeasurementRecords');
 
     let query: any = {};
     if (train_id) query.TrainID = train_id;
