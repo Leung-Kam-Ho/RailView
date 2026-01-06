@@ -388,7 +388,7 @@ const StatusIndicator = ({ status, size = 'md' }: { status: 'healthy' | 'warning
 };
 
 const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) => {
-    if (!wheel) return <div className="w-24 h-24"></div>;
+    if (!wheel) return <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-24 md:h-24"></div>;
     
     const statusColors: Record<'healthy' | 'warning' | 'critical', string> = {
         healthy: 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100 dark:bg-green-950 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900',
@@ -397,27 +397,27 @@ const WheelButton = ({ wheel, onClick }: { wheel: any, onClick: () => void }) =>
     };
 
     return (
-        <div className="flex flex-col items-center gap-2">
-            <div className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest">{wheel.position}</div>
+        <div className="flex flex-col items-center gap-0.5 md:gap-2">
+            <div className="text-[8px] xs:text-[9px] md:text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest">{wheel.position}</div>
             <div className="relative">
                 <button
                     onClick={onClick}
                         className={`
-                            w-24 h-24 rounded-full border-4 shadow-sm transition-all hover:scale-105 flex flex-col items-center justify-center
+                            w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-24 md:h-24 rounded-full border-2 md:border-4 shadow-sm transition-all hover:scale-105 flex flex-col items-center justify-center
                             ${statusColors[wheel.status as 'healthy' | 'warning' | 'critical']}
                         `}
                 >
-                    <div className="text-sm font-medium opacity-60">Wear</div>
-                    <div className="text-xl font-bold font-mono">{wheel.currentVal}</div>
+                    <div className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-sm font-medium opacity-60">Wear</div>
+                    <div className="text-xs sm:text-sm md:text-xl font-bold font-mono">{wheel.currentVal}</div>
                 </button>
                 {wheel.status !== 'healthy' && (
-                    <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+                    <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 text-[6px] xs:text-[7px] sm:text-[8px] md:text-[10px] font-bold uppercase px-0.5 xs:px-1 md:px-2 py-0.5 rounded-full ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
                         {wheel.status}
                     </div>
                 )}
-                </div>
             </div>
-        );
+        </div>
+    );
 };
 
 const HomePage = () => {
@@ -719,7 +719,7 @@ const HomePage = () => {
 
     if (!isClient || isLoading) {
         return (
-            <div className="flex h-screen bg-slate-50 dark:bg-slate-900 items-center justify-center">
+            <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
                     <p className="text-slate-600 dark:text-slate-400">Loading fleet data...</p>
@@ -734,36 +734,36 @@ const HomePage = () => {
         );
 
         return (
-            <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans text-slate-800 dark:text-slate-200">
-                <div className="flex-1 flex flex-col h-full overflow-hidden">
-                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                         <div className="flex items-center justify-between w-full">
-                             <div className="flex items-center gap-3">
-                                 <button
-                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                     className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors md:hidden"
-                                 >
-                                     <Menu className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                 </button>
-                                 <div>
-                                     <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                         <Train className="text-indigo-600" /> {'RailView'}
-                                     </h1>
-                                     {selectedDate && (
-                                         <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                             Data as of: {format(selectedDate, 'PPP')}
-                                         </p>
-                                     )}
+            <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200">
+                <div className="flex-1 flex flex-col min-h-screen">
+                    <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-3 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4">
+                             <div className="flex items-center justify-between w-full flex-wrap gap-2">
+                                 <div className="flex items-center gap-1 md:gap-3">
+                                     <button
+                                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                         className="p-1.5 md:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors md:hidden"
+                                     >
+                                         <Menu className="w-4 h-4 md:w-5 md:h-5 text-slate-600 dark:text-slate-400" />
+                                     </button>
+                                     <div>
+                                         <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1 md:gap-2">
+                                             <Train className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" /> {'RailView'}
+                                         </h1>
+                                         {selectedDate && (
+                                             <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                 Data as of: {format(selectedDate, 'PPP')}
+                                             </p>
+                                         )}
+                                     </div>
                                  </div>
-                             </div>
                          </div>
-                         <div className="flex items-center gap-3 md:gap-6 flex-wrap w-full md:w-auto">
-                                <div className="relative flex-shrink-0">
+                         <div className="flex items-center gap-1 md:gap-3 md:gap-6 flex-wrap w-full md:w-auto">
+                                <div className="relative flex-shrink-0 flex-1 max-w-xs md:max-w-none">
                                     <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 w-4 h-4" />
                                     <input
                                         type="text"
                                         placeholder="Search TS01..."
-                                        className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-40 md:w-64 text-sm"
+                                        className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full text-sm"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -824,7 +824,7 @@ const HomePage = () => {
                          </div>
                      </header>
 
-                       <div className="px-4 md:px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs md:text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center flex-wrap gap-2">
+                       <div className="px-3 md:px-6 py-2 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs md:text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center flex-wrap gap-2">
                           <div>
                             Critical: {filteredCriticalCount} | Warning: {filteredWarningCount}
                           </div>
@@ -867,15 +867,15 @@ const HomePage = () => {
                           </div>
                       </div>
 
-                    <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                    <main className="flex-1 overflow-y-auto p-3 md:p-6">
                           {viewMode === 'trainset' ? (
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-3 lg:gap-4 p-1 md:p-0">
                                   {(filteredItems as Train[]).map(train => (
                                      <button
                                          key={train.id}
                                          onClick={() => handleTrainSelect(train.id)}
                                          className={`
-                                             relative group p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 h-32
+                                                  relative group p-3 md:p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-2 md:gap-3 h-28 md:h-32
                                              ${train.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
                                              train.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
                                              'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
@@ -891,13 +891,13 @@ const HomePage = () => {
                                  ))}
                              </div>
                           ) : (
-                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-3 lg:gap-4 p-1 md:p-0">
                                    {(filteredItems as FilteredCoach[]).map(coach => (
                                          <button
                                              key={`${coach.trainId}-${coach.id}`}
                                              onClick={() => { setSelectedTrainId(coach.trainId); setSelectedCoachId(coach.id); setView('TRAIN'); }}
                                              className={`
-                                                 relative group p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 h-32
+                                                 relative group p-3 md:p-4 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-2 md:gap-3 h-28 md:h-32
                                                  ${coach.status === 'critical' ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-800' :
                                                  coach.status === 'warning' ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-950 hover:border-amber-300 dark:hover:border-amber-800' :
                                                  'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/50 hover:bg-green-100 dark:hover:bg-green-950 hover:border-green-300 dark:hover:border-green-800'}
@@ -919,7 +919,7 @@ const HomePage = () => {
                      </main>
                 </div>
 
-                <div className={`${isMobile ? 'fixed inset-y-0 right-0 w-80' : 'w-80'} bg-white dark:bg-slate-950 border-l ${isMobile ? 'border-l-0' : 'border-l border-slate-200 dark:border-slate-800'} flex flex-col h-full shadow-xl z-20 transform transition-transform duration-300 ${isMobile && !isSidebarOpen ? 'translate-x-full' : 'translate-x-0'}`}>
+                <div className={`${isMobile ? 'fixed inset-y-0 right-0 w-72 sm:w-80' : 'w-80'} bg-white dark:bg-slate-950 border-l ${isMobile ? 'border-l-0' : 'border-l border-slate-200 dark:border-slate-800'} flex flex-col min-h-screen shadow-xl z-20 transform transition-transform duration-300 ${isMobile && !isSidebarOpen ? 'translate-x-full' : 'translate-x-0'}`}>
                     <div className="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                         <h2 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                             <AlertTriangle className="text-rose-500 w-5 h-5" /> Action Required
@@ -962,8 +962,8 @@ const HomePage = () => {
         const wheelsDown = selectedCoachData?.wheels.filter(w => w.position.includes('D')) || [];
 
         return (
-            <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans">
-                <div className="flex-1 flex flex-col h-full relative">
+            <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
+                <div className="flex-1 flex flex-col min-h-screen relative">
                     
                     <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 md:px-6 py-3 md:py-4 flex items-center gap-2 md:gap-4 shadow-sm z-10 flex-wrap">
                         <button 
@@ -972,12 +972,12 @@ const HomePage = () => {
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-slate-500 dark:text-slate-400">
-                            <span className="hover:text-indigo-600 cursor-pointer" onClick={() => setView('FLEET')}>Fleet</span>
-                            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-                            <span className="font-bold text-slate-800 dark:text-slate-200 text-base md:text-lg">{selectedTrainId}</span>
-                        </div>
-                        <div className="ml-auto flex gap-2 md:gap-3 items-center flex-wrap">
+                             <div className="flex items-center gap-0.5 md:gap-1 md:gap-2 text-xs md:text-sm text-slate-500 dark:text-slate-400">
+                                <span className="hover:text-indigo-600 cursor-pointer" onClick={() => setView('FLEET')}>Fleet</span>
+                                <ChevronRight className="w-2 h-2 md:w-3 md:h-3 md:w-4 md:h-4" />
+                                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm md:text-base md:text-lg truncate max-w-[120px] md:max-w-none">{selectedTrainId}</span>
+                            </div>
+                        <div className="ml-auto flex gap-1 md:gap-2 md:gap-3 items-center flex-wrap">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button
@@ -1058,7 +1058,7 @@ const HomePage = () => {
                             </div>
                         </section>
 
-                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 md:p-8 flex-1 max-h-[75vh]">
+                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 md:p-8 flex-1 overflow-y-auto">
                               <div className="flex justify-between items-start mb-8">
                                   <div className="flex items-center gap-4">
                                       <div>
@@ -1107,32 +1107,32 @@ const HomePage = () => {
 
                               </div>
 
-                             {wheelViewMode === 'compact' ? (
-                                 <div className="relative max-w-4xl mx-auto">
-                                     <div className="absolute top-1/2 left-0 w-full h-32 -translate-y-1/2 flex flex-col justify-between pointer-events-none">
-                                         <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                         <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                     </div>
+                              {wheelViewMode === 'compact' ? (
+                                  <div className="relative w-full max-w-4xl mx-auto">
+                                      <div className="absolute top-1/2 left-0 w-full h-20 md:h-32 -translate-y-1/2 flex flex-col justify-between pointer-events-none">
+                                          <div className="w-full h-1 md:h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                          <div className="w-full h-1 md:h-2 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                      </div>
 
-                                     <div className="grid grid-cols-4 gap-8 relative z-0">
-                                         {[0, 1, 2, 3].map(idx => {
-                                             const upWheel = wheelsUp.find(w => w.position === `${idx+1}U`);
-                                             const downWheel = wheelsDown.find(w => w.position === `${idx+1}D`);
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-8 relative z-0">
+                                          {[0, 1, 2, 3].map(idx => {
+                                              const upWheel = wheelsUp.find(w => w.position === `${idx+1}U`);
+                                              const downWheel = wheelsDown.find(w => w.position === `${idx+1}D`);
 
-                                             return (
-                                                 <div key={idx} className="flex flex-col gap-24 items-center">
-                                                     {upWheel && <WheelButton wheel={upWheel} onClick={() => handleWheelClick(upWheel)} />}
-                                                     {downWheel && <WheelButton wheel={downWheel} onClick={() => handleWheelClick(downWheel)} />}
-                                                 </div>
-                                             )
-                                         })}
-                                     </div>
+                                              return (
+                                                  <div key={idx} className="flex flex-col gap-8 xs:gap-10 sm:gap-12 md:gap-24 items-center">
+                                                      {upWheel && <WheelButton wheel={upWheel} onClick={() => handleWheelClick(upWheel)} />}
+                                                      {downWheel && <WheelButton wheel={downWheel} onClick={() => handleWheelClick(downWheel)} />}
+                                                  </div>
+                                              )
+                                          })}
+                                      </div>
 
-                                     <div className="absolute -left-12 top-4 text-xs font-bold text-slate-400 dark:text-slate-500">UP SIDE</div>
-                                     <div className="absolute -left-16 bottom-4 text-xs font-bold text-slate-400 dark:text-slate-500">DOWN SIDE</div>
-                                 </div>
+                                      <div className="absolute -left-4 xs:-left-6 md:-left-12 top-1 md:top-4 text-[8px] xs:text-[9px] md:text-xs font-bold text-slate-400 dark:text-slate-500">UP SIDE</div>
+                                      <div className="absolute -left-5 xs:-left-7 md:-left-16 bottom-1 md:bottom-4 text-[8px] xs:text-[9px] md:text-xs font-bold text-slate-400 dark:text-slate-500">DOWN SIDE</div>
+                                  </div>
                              ) : (
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-1">
                                      {selectedCoachData?.wheels.sort((a, b) => {
                                          const aIsU = a.position.includes('U');
                                          const bIsU = b.position.includes('U');
@@ -1142,47 +1142,47 @@ const HomePage = () => {
                                          const bNum = parseInt(b.position);
                                          return aNum - bNum;
                                      }).map((wheel) => (
-                                            <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-4 pr-1 pb-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                                             <div className="flex items-center justify-center gap-2 mb-2">
-                                                 <div className="text-sm font-bold">{wheel.position}</div>
-                                                 <StatusIndicator status={wheel.status} size="sm" />
-                                                 {wheel.status !== 'healthy' && (
-                                                     <div className={`text-[10px] font-bold uppercase px-1 py-0.5 rounded ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
-                                                         {wheel.status}
-                                                     </div>
-                                                 )}
-                                             </div>
-                                               <div className="h-48 flex items-center justify-center">
+                                             <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-3 md:pt-4 pr-1 pb-3 md:pb-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                              <div className="flex items-center justify-center gap-1 md:gap-2 mb-2">
+                                                  <div className="text-xs md:text-sm font-bold">{wheel.position}</div>
+                                                  <StatusIndicator status={wheel.status} size="sm" />
+                                                  {wheel.status !== 'healthy' && (
+                                                      <div className={`text-[8px] md:text-[10px] font-bold uppercase px-1 py-0.5 rounded ${wheel.status === 'critical' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                          {wheel.status}
+                                                      </div>
+                                                  )}
+                                              </div>
+                                                <div className="h-32 xs:h-36 sm:h-40 md:h-48 flex items-center justify-center">
                                                    {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
                                                         <ResponsiveContainer width="95%" height="95%">
                                                               <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 1, right: 1, left: 1, bottom: 1 }}>
                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                                               <XAxis
-                                                                   dataKey="date"
-                                                                   tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                                   tickFormatter={(val) => {
-                                                                       const d = new Date(val);
-                                                                       return `${d.getDate()}`;
-                                                                   }}
-                                                                   tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                   axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                               />
-                                                                <YAxis
-                                                                    domain={[30, 36]}
-                                                                    tick={{fontSize: 10, fill: 'hsl(var(--muted-foreground))'}}
-                                                                    tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                    axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                    width={25}
-                                                                />
-                                                                <YAxis
-                                                                    yAxisId="std"
-                                                                    orientation="right"
-                                                                    domain={[0, 2]}
+                                                                <XAxis
+                                                                    dataKey="date"
                                                                     tick={{fontSize: 8, fill: 'hsl(var(--muted-foreground))'}}
+                                                                    tickFormatter={(val) => {
+                                                                        const d = new Date(val);
+                                                                        return d.getDate().toString();
+                                                                    }}
                                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
-                                                                    width={35}
                                                                 />
+                                                                 <YAxis
+                                                                     domain={[30, 36]}
+                                                                     tick={{fontSize: 8, fill: 'hsl(var(--muted-foreground))'}}
+                                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                     width={20}
+                                                                 />
+                                                                 <YAxis
+                                                                     yAxisId="std"
+                                                                     orientation="right"
+                                                                     domain={[0, 2]}
+                                                                     tick={{fontSize: 7, fill: 'hsl(var(--muted-foreground))'}}
+                                                                     tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                     axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                                                                     width={25}
+                                                                 />
                                                               <Tooltip
                                                                   formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
                                                                   contentStyle={{
@@ -1227,16 +1227,16 @@ const HomePage = () => {
                                                                    animationDuration={0}
                                                                    connectNulls={true}
                                                                />
-                                                                 <Line
-                                                                     type="monotone"
-                                                                     dataKey="actual"
-                                                                     stroke="#22c55e"
-                                                                     strokeWidth={2}
-                                                                     dot={{ fill: '#22c55e', r: 2 }}
-                                                                     name="Actual SH"
-                                                                     animationDuration={0}
-                                                                     connectNulls={false}
-                                                                 />
+                                                                  <Line
+                                                                      type="monotone"
+                                                                      dataKey="actual"
+                                                                      stroke="#22c55e"
+                                                                      strokeWidth={1}
+                                                                      dot={{ fill: '#22c55e', r: 1 }}
+                                                                      name="Actual SH"
+                                                                      animationDuration={0}
+                                                                      connectNulls={false}
+                                                                  />
                                                                  <Bar
                                                                      dataKey="valStd"
                                                                      yAxisId="std"
@@ -1249,7 +1249,7 @@ const HomePage = () => {
                                                            </ComposedChart>
                                                       </ResponsiveContainer>
                                                  ) : (
-                                                     <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400 text-xs">Loading...</div>
+                                                      <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400 text-[10px]">Loading...</div>
                                                  )}
                                              </div>
                                          </div>
@@ -1262,7 +1262,7 @@ const HomePage = () => {
 
                  {selectedWheel && (
                       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-2">
-                          <div className="bg-white dark:bg-slate-900 rounded-xl md:rounded-2xl shadow-2xl w-[95vw] md:w-[90vw] h-[90vh] md:h-[85vh] flex flex-col overflow-hidden animate-in fade-in-95 duration-300">
+                          <div className="bg-white dark:bg-slate-900 rounded-xl md:rounded-2xl shadow-2xl w-[95vw] md:w-[90vw] h-[95vh] md:h-[85vh] flex flex-col overflow-hidden animate-in fade-in-95 duration-300">
                             
                             <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-900/50">
                                 <div>
