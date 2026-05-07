@@ -136,7 +136,7 @@ export const TrainDetail = (props: any) => {
                             </div>
                         </section>
 
-                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 md:p-8 flex-1 overflow-y-auto">
+                          <section id="coach-detail-section" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 md:p-8 flex-1 overflow-y-auto flex flex-col">
                               <div className="flex justify-between items-start mb-8">
                                   <div className="flex items-center gap-4">
                                       <div>
@@ -245,7 +245,7 @@ export const TrainDetail = (props: any) => {
                                       <div className="absolute -left-5 xs:-left-7 md:-left-16 bottom-1 md:bottom-4 text-[8px] xs:text-[9px] md:text-xs font-bold text-slate-400 dark:text-slate-500">DOWN SIDE</div>
                                   </div>
                              ) : (
-                                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-1">
+                                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-1 flex-1 min-h-0">
                                      {selectedCoachData?.wheels.sort((a: any, b: any) => {
                                          const aIsU = a.position.includes('U');
                                          const bIsU = b.position.includes('U');
@@ -255,7 +255,7 @@ export const TrainDetail = (props: any) => {
                                          const bNum = parseInt(b.position);
                                          return aNum - bNum;
                                      }).map((wheel: any) => (
-                                             <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-3 md:pt-4 pr-1 pb-3 md:pb-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                             <div key={wheel.id} className="bg-slate-50 dark:bg-slate-800 pl-1 pt-3 md:pt-4 pr-1 pb-3 md:pb-4 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col h-full min-h-[200px]">
                                               <div className="flex items-center justify-center gap-1 md:gap-2 mb-2">
                                                   <div className="text-xs md:text-sm font-bold">{wheel.position}</div>
                                                   <StatusIndicator status={wheel.status} size="sm" />
@@ -265,7 +265,7 @@ export const TrainDetail = (props: any) => {
                                                       </div>
                                                   )}
                                               </div>
-                                                <div className="h-32 xs:h-36 sm:h-40 md:h-48 flex items-center justify-center">
+                                                <div className="flex-1 min-h-0 w-full flex items-center justify-center">
                                                    {(wheelTrends[wheel.id] && wheelTrends[wheel.id].length > 0) ? (
                                                         <ResponsiveContainer width="95%" height="95%">
                                                               <ComposedChart data={wheelTrends[wheel.id]} margin={{ top: 1, right: 1, left: 1, bottom: 1 }}>
