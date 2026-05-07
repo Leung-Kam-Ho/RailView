@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     ResponsiveContainer, ReferenceLine, Area, ComposedChart, BarChart, Bar, Cell
@@ -27,6 +27,9 @@ const LIMIT_CRITICAL = 35.0;
 
 export const TrainDetail = (props: any) => {
     const { fleetData, setFleetData, view, setView, selectedTrainId, setSelectedTrainId, selectedCoachId, setSelectedCoachId, selectedWheel, setSelectedWheel, searchTerm, setSearchTerm, viewMode, setViewMode, statusFilter, setStatusFilter, coachTypeFilter, setCoachTypeFilter, sortBy, setSortBy, wheelViewMode, setWheelViewMode, wheelTrends, setWheelTrends, sampleRate, setSampleRate, selectedDate, setSelectedDate, downloadProgress, setDownloadProgress, cancelledRef, isDownloading, setIsDownloading, isSidebarOpen, setIsSidebarOpen, isMobile, getStdColor, isClient, setIsClient, isLoading, setIsLoading, loadAllWheelTrends, loadData, selectedTrainData, selectedCoachData, criticalIssues, filteredItems, filteredCriticalCount, filteredWarningCount, handleTrainSelect, handleWheelClick, downloadAllCoachViews, closeWheelModal, cancelDownload } = props;
+
+    const [showMinMax, setShowMinMax] = useState(true);
+    const [showStd, setShowStd] = useState(true);
 
         if (!selectedTrainData) return null;
 
@@ -146,23 +149,49 @@ export const TrainDetail = (props: any) => {
                                                <TabsTrigger value="detail">Detail</TabsTrigger>
                                            </TabsList>
                                        </Tabs>
-                                       <DropdownMenu>
-                                           <DropdownMenuTrigger asChild>
-                                               <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1">
-                                                   Sample Rate: {sampleRate}
-                                                   <ChevronDown className="w-3 h-3" />
-                                               </button>
-                                           </DropdownMenuTrigger>
-                                           <DropdownMenuContent>
-                                               <DropdownMenuRadioGroup value={sampleRate.toString()} onValueChange={(value) => setSampleRate(parseInt(value))}>
-                                                   <DropdownMenuRadioItem value="1">1 day</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="3">3 days</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="7">7 days</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="15">15 days</DropdownMenuRadioItem>
-                                                   <DropdownMenuRadioItem value="30">30 days</DropdownMenuRadioItem>
-                                               </DropdownMenuRadioGroup>
-                                           </DropdownMenuContent>
-                                       </DropdownMenu>
+                                       <div className="flex items-center gap-4">
+                                           <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                               <input 
+                                                   type="checkbox" 
+                                                   id="showMinMax" 
+                                                   checked={showMinMax} 
+                                                   onChange={(e) => setShowMinMax(e.target.checked)} 
+                                                   className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                               />
+                                               <label htmlFor="showMinMax" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                   Show Min/Max
+                                               </label>
+                                           </div>
+                                           <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                               <input 
+                                                   type="checkbox" 
+                                                   id="showStd" 
+                                                   checked={showStd} 
+                                                   onChange={(e) => setShowStd(e.target.checked)} 
+                                                   className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                               />
+                                               <label htmlFor="showStd" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                                                   Show Std Dev
+                                               </label>
+                                           </div>
+                                           <DropdownMenu>
+                                               <DropdownMenuTrigger asChild>
+                                                   <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium flex items-center gap-1">
+                                                       Sample Rate: {sampleRate}
+                                                       <ChevronDown className="w-3 h-3" />
+                                                   </button>
+                                               </DropdownMenuTrigger>
+                                               <DropdownMenuContent>
+                                                   <DropdownMenuRadioGroup value={sampleRate.toString()} onValueChange={(value) => setSampleRate(parseInt(value))}>
+                                                       <DropdownMenuRadioItem value="1">1 day</DropdownMenuRadioItem>
+                                                       <DropdownMenuRadioItem value="3">3 days</DropdownMenuRadioItem>
+                                                       <DropdownMenuRadioItem value="7">7 days</DropdownMenuRadioItem>
+                                                       <DropdownMenuRadioItem value="15">15 days</DropdownMenuRadioItem>
+                                                       <DropdownMenuRadioItem value="30">30 days</DropdownMenuRadioItem>
+                                                   </DropdownMenuRadioGroup>
+                                               </DropdownMenuContent>
+                                           </DropdownMenu>
+                                       </div>
                                    </div>
 
                                       <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-4 text-[10px] md:text-xs">
@@ -258,7 +287,7 @@ export const TrainDetail = (props: any) => {
                                                                      axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                                      width={20}
                                                                  />
-                                                                 <YAxis
+                                                                 {showStd && <YAxis
                                                                      yAxisId="std"
                                                                      orientation="right"
                                                                      domain={[0, 2]}
@@ -266,7 +295,7 @@ export const TrainDetail = (props: any) => {
                                                                      tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                                      axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                                      width={25}
-                                                                 />
+                                                                 />}
                                                               <Tooltip
                                                                   formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
                                                                   contentStyle={{
@@ -291,7 +320,7 @@ export const TrainDetail = (props: any) => {
                                                                    animationDuration={0}
                                                                    connectNulls={true}
                                                                />
-                                                               <Line
+                                                               {showMinMax && <Line
                                                                    type="monotone"
                                                                    dataKey="valMin"
                                                                    stroke="#3b82f6"
@@ -300,8 +329,8 @@ export const TrainDetail = (props: any) => {
                                                                    name="Min"
                                                                    animationDuration={0}
                                                                    connectNulls={true}
-                                                               />
-                                                               <Line
+                                                               />}
+                                                               {showMinMax && <Line
                                                                    type="monotone"
                                                                    dataKey="valMax"
                                                                    stroke="#ef4444"
@@ -310,7 +339,7 @@ export const TrainDetail = (props: any) => {
                                                                    name="Max"
                                                                    animationDuration={0}
                                                                    connectNulls={true}
-                                                               />
+                                                               />}
                                                                   <Line
                                                                       type="monotone"
                                                                       dataKey="actual"
@@ -321,7 +350,7 @@ export const TrainDetail = (props: any) => {
                                                                       animationDuration={0}
                                                                       connectNulls={false}
                                                                   />
-                                                                 <Bar
+                                                                 {showStd && <Bar
                                                                      dataKey="valStd"
                                                                      yAxisId="std"
                                                                      name="Std Dev"
@@ -329,7 +358,7 @@ export const TrainDetail = (props: any) => {
                                                                      {wheelTrends[wheel.id].map((entry: any, index: number) => (
                                                                          <Cell key={`cell-${index}`} fill={getStdColor(entry.valStd)} />
                                                                      ))}
-                                                                 </Bar>
+                                                                 </Bar>}
                                                            </ComposedChart>
                                                       </ResponsiveContainer>
                                                  ) : (
@@ -403,7 +432,7 @@ export const TrainDetail = (props: any) => {
                                                       tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                       axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                   />
-                                                  <YAxis
+                                                  {showStd && <YAxis
                                                       yAxisId="std"
                                                       orientation="right"
                                                       domain={[0, 2]}
@@ -412,7 +441,7 @@ export const TrainDetail = (props: any) => {
                                                       tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                       axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
                                                       width={45}
-                                                  />
+                                                  />}
                                                    <Tooltip
                                                        formatter={(value, name) => [typeof value === 'number' ? value.toFixed(3) : value, name]}
                                                        contentStyle={{
@@ -443,7 +472,7 @@ export const TrainDetail = (props: any) => {
                                                      />
 
                                                     {/* Min line */}
-                                                    <Line
+                                                    {showMinMax && <Line
                                                         type="monotone"
                                                         dataKey="valMin"
                                                         stroke="#3b82f6" // blue
@@ -452,10 +481,10 @@ export const TrainDetail = (props: any) => {
                                                         name="Min"
                                                          animationDuration={0}
                                                          connectNulls={true}
-                                                    />
+                                                    />}
 
                                                     {/* Max line */}
-                                                    <Line
+                                                    {showMinMax && <Line
                                                         type="monotone"
                                                         dataKey="valMax"
                                                         stroke="#ef4444" // red
@@ -464,7 +493,7 @@ export const TrainDetail = (props: any) => {
                                                         name="Max"
                                                          animationDuration={0}
                                                          connectNulls={true}
-                                                    />
+                                                    />}
 
                                                     {/* Actual line */}
                                                     <Line
@@ -478,7 +507,7 @@ export const TrainDetail = (props: any) => {
                                                         connectNulls={false}
                                                     />
 
-                                                    <Bar
+                                                    {showStd && <Bar
                                                         dataKey="valStd"
                                                         yAxisId="std"
                                                         name="Std Dev"
@@ -486,7 +515,7 @@ export const TrainDetail = (props: any) => {
                                                         {wheelTrends[selectedWheel.id].map((entry: any, index: number) => (
                                                             <Cell key={`cell-${index}`} fill={getStdColor(entry.valStd)} />
                                                         ))}
-                                                    </Bar>
+                                                    </Bar>}
 
                                              </ComposedChart>
                                          </ResponsiveContainer>
